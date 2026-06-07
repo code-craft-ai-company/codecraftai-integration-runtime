@@ -1,0 +1,186 @@
+/* =======================================================================
+   Author: "Myron Walker"
+   Copyright: "Copyright 2024, Myron W Walker"
+   Version: = "2.0.0"
+   Email: myron.walker@gmail.com
+   
+   Responsive Design Styles for Tab Pages
+   Provides mobile-friendly layout for artifact tab pages.
+=======================================================================*/
+
+/* =======================================================================
+                        BASE TAB PAGE STYLES
+   =======================================================================*/
+
+.page-style {
+    margin: 0px;
+    padding: 10px;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 280px;
+}
+
+.flex-container {
+    display: flex;
+    flex-wrap: wrap;
+    width: auto;
+    height: auto;
+    gap: 15px;
+}
+
+.item-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+}
+
+.item-label {
+    width: 100%;
+    height: 30px;
+    justify-content: center;
+    font-weight: bold;
+    word-break: break-word;
+}
+
+.item-content {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+}
+
+/* =======================================================================
+                        IMAGE TAB RESPONSIVE
+   =======================================================================*/
+
+.item-container img {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* =======================================================================
+                        AUDIO TAB RESPONSIVE
+   =======================================================================*/
+
+.item-container audio {
+    width: 100%;
+    max-width: 400px;
+    min-width: 200px;
+}
+
+/* =======================================================================
+                        VIDEO TAB RESPONSIVE
+   =======================================================================*/
+
+.item-container video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* =======================================================================
+                        DATA/LOG TAB RESPONSIVE
+   =======================================================================*/
+
+.data-viewer,
+.log-viewer {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-viewer pre,
+.log-viewer pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 12px;
+}
+
+/* =======================================================================
+                        CHART TAB RESPONSIVE
+   =======================================================================*/
+
+.chart-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.chart-container svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* =======================================================================
+                        RESPONSIVE BREAKPOINTS
+   =======================================================================*/
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+    .page-style {
+        padding: 8px;
+    }
+    
+    .flex-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .item-container {
+        width: 100%;
+    }
+    
+    .item-label {
+        font-size: 14px;
+    }
+    
+    .item-container audio {
+        max-width: 100%;
+    }
+}
+
+/* Mobile phones (480px and below) */
+@media (max-width: 480px) {
+    .page-style {
+        padding: 5px;
+    }
+    
+    .item-label {
+        font-size: 12px;
+        height: auto;
+        padding: 5px 0;
+    }
+    
+    .data-viewer pre,
+    .log-viewer pre {
+        font-size: 10px;
+    }
+}
+
+/* =======================================================================
+                        TOUCH-FRIENDLY INTERACTIONS
+   =======================================================================*/
+
+/* Touch-friendly audio controls */
+audio::-webkit-media-controls-panel {
+    min-height: 44px;
+}
+
+/* Touch-friendly video controls */
+video::-webkit-media-controls-panel {
+    min-height: 44px;
+}
+
+/* =======================================================================
+                        PRINT STYLES
+   =======================================================================*/
+
+@media print {
+    .page-style {
+        padding: 0;
+    }
+    
+    .item-container audio,
+    .item-container video {
+        display: none;
+    }
+}

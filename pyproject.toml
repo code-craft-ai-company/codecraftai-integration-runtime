@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "automojo-integration-runtime"
+description = "Automation Mojo - Integration Runtime"
+version = "0.0.1"
+authors = [
+    "Myron Walker"
+]
+readme = "README.rst"
+license = "LICENSE.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX"
+]
+keywords = [
+    "python"
+]
+packages = [{include="automojo", from="source/packages"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+debugpy = "^1.8.12"
+automojo-errors = { git = "https://github.com/automationmojo/automojo-errors.git", branch = "main" }
+automojo-xmodules = { git = "https://github.com/automationmojo/automojo-xmodules.git", branch = "main" }
+automojo-extension = { git = "https://github.com/automationmojo/automojo-extension.git", branch = "main" }
+automojo-this-app = { git = "https://github.com/automationmojo/automojo-this-app.git", branch = "main" }
+automojo-testbase = { git = "https://github.com/automationmojo/automojo-testbase.git", branch = "main" }
+
+
+[tool.poetry.group.dev.dependencies]
+
+[tool.poetry.group.dbio.dependencies]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,679 @@
+/* =======================================================================
+   Author: "Myron Walker"
+   Copyright: "Copyright 2024, Myron W Walker"
+   Version: = "2.0.0"
+   Email: myron.walker@gmail.com
+   
+   Responsive Design Styles for TestSummary HTML Report Templates
+   Provides mobile-friendly layout, collapsible sidebar navigation,
+   and touch-friendly interactions.
+=======================================================================*/
+
+/* =======================================================================
+                        VIEWPORT META SUPPORT
+   =======================================================================*/
+
+/* Base responsive container */
+.page-style {
+    min-width: 320px;
+    overflow-x: hidden;
+}
+
+/* =======================================================================
+                        MOBILE NAVIGATION TOGGLE
+   =======================================================================*/
+
+.ts-mobile-nav-toggle {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+    width: 44px;
+    height: 44px;
+    background-color: var(--color-section-header-background-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s ease;
+}
+
+.ts-mobile-nav-toggle:hover {
+    background-color: #3a3b5a;
+}
+
+.ts-mobile-nav-toggle:active {
+    background-color: #2a2b4a;
+}
+
+.ts-mobile-nav-toggle-icon {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+}
+
+.ts-mobile-nav-toggle-icon span {
+    display: block;
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Hamburger to X animation */
+.ts-mobile-nav-toggle.active .ts-mobile-nav-toggle-icon span:nth-child(1) {
+    transform: translateY(10px) rotate(45deg);
+}
+
+.ts-mobile-nav-toggle.active .ts-mobile-nav-toggle-icon span:nth-child(2) {
+    opacity: 0;
+}
+
+.ts-mobile-nav-toggle.active .ts-mobile-nav-toggle-icon span:nth-child(3) {
+    transform: translateY(-10px) rotate(-45deg);
+}
+
+/* =======================================================================
+                        COLLAPSIBLE SIDEBAR NAVIGATION
+   =======================================================================*/
+
+.ts-sidebar-nav {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background-color: var(--color-section-header-background-color);
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.ts-sidebar-nav.open {
+    transform: translateX(0);
+}
+
+.ts-sidebar-nav-header {
+    padding: 60px 15px 15px 15px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ts-sidebar-nav-title {
+    color: white;
+    font-size: 16pt;
+    font-weight: bold;
+    margin: 0;
+}
+
+.ts-sidebar-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 10px 0;
+}
+
+.ts-sidebar-nav-item {
+    margin: 0;
+}
+
+.ts-sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    color: white;
+    text-decoration: none;
+    font-size: 12pt;
+    transition: background-color 0.2s ease;
+    border-left: 4px solid transparent;
+}
+
+.ts-sidebar-nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: var(--color-pass);
+}
+
+.ts-sidebar-nav-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-left-color: var(--color-pass);
+}
+
+.ts-sidebar-nav-icon {
+    margin-right: 12px;
+    font-size: 14pt;
+}
+
+/* Sidebar overlay */
+.ts-sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.ts-sidebar-overlay.visible {
+    opacity: 1;
+}
+
+/* =======================================================================
+                        TOUCH-FRIENDLY INTERACTIONS
+   =======================================================================*/
+
+/* Increase touch target sizes */
+.ts-touch-target {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* Touch-friendly buttons */
+.ts-filter-btn,
+.ts-export-btn,
+.ts-date-clear {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Touch-friendly collapsible headers */
+.mojo-collapsible-button,
+.mojo-collapsible-lvl2-button,
+.mojo-collapsible-lvl3-button,
+.ts-errors-collapsible-button,
+.ts-failures-collapsible-button,
+.ts-importfailure-trace-button {
+    min-height: 44px;
+    padding: 10px 15px;
+}
+
+/* Touch-friendly tab labels */
+.mojo-tab-label {
+    min-height: 44px;
+    min-width: 60px;
+}
+
+/* Touch-friendly tree node headers */
+.ts-tree-node-header {
+    min-height: 44px;
+    padding: 10px 12px;
+}
+
+/* Prevent text selection on touch */
+.ts-no-select {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Touch feedback */
+.ts-touch-feedback {
+    transition: background-color 0.1s ease;
+}
+
+.ts-touch-feedback:active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* =======================================================================
+                        RESPONSIVE BREAKPOINTS
+   =======================================================================*/
+
+/* Large tablets and small desktops (1024px and below) */
+@media (max-width: 1024px) {
+    .ts-banner-content {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .ts-banner-column {
+        margin-bottom: 10px;
+    }
+    
+    .ts-banner-metrics-panel {
+        flex-wrap: wrap;
+        justify-content: center;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    
+    .ts-results-hdr-grid {
+        grid-template-columns: minmax(120px, max-content) auto minmax(50px, max-content) minmax(50px, max-content) minmax(50px, max-content) minmax(50px, max-content);
+    }
+    
+    .ts-results-items-grid {
+        grid-template-columns: minmax(100px, max-content) auto minmax(50px, max-content) minmax(50px, max-content) minmax(50px, max-content) minmax(50px, max-content);
+    }
+}
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+    /* Show mobile navigation */
+    .ts-mobile-nav-toggle {
+        display: flex;
+    }
+    
+    .ts-sidebar-nav {
+        display: block;
+    }
+    
+    .ts-sidebar-overlay {
+        display: block;
+    }
+    
+    /* Adjust page layout for mobile nav */
+    .section-header,
+    .section-body,
+    .section-footer {
+        transition: margin-left 0.3s ease;
+    }
+    
+    /* Banner responsive adjustments */
+    .ts-banner-job {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .ts-banner-logo {
+        margin: 10px auto;
+    }
+    
+    .ts-banner-content {
+        flex-direction: column;
+        align-items: center;
+        margin-top: 10px;
+        padding: 0 10px;
+    }
+    
+    .ts-banner-column {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+    
+    .ts-banner-prop-pair {
+        justify-content: center;
+    }
+    
+    .ts-banner-prop-label,
+    .ts-banner-prop-value {
+        font-size: 12pt;
+    }
+    
+    .ts-banner-metrics {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    .ts-banner-metrics-panel {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+    }
+    
+    .ts-banner-metrics-column {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+    
+    .ts-banner-metrics-value-pair {
+        justify-content: center;
+    }
+    
+    .ts-banner-metrics-label,
+    .ts-banner-metrics-value {
+        font-size: 12pt;
+    }
+    
+    /* Results grid responsive */
+    .ts-results-hdr-grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    .ts-results-hdr-start,
+    .ts-results-hdr-name,
+    .ts-results-hdr-e,
+    .ts-results-hdr-f,
+    .ts-results-hdr-s,
+    .ts-results-hdr-p {
+        text-align: left;
+        padding: 5px 10px;
+    }
+    
+    .ts-results-items-grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    .ts-results-item-start,
+    .ts-results-item-name,
+    .ts-results-item-score {
+        text-align: left;
+        padding: 5px 10px;
+    }
+    
+    .ts-results-grp-grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    /* Timeline responsive */
+    .ts-timeline-header {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    .ts-timeline-item {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .ts-timeline-item-time,
+    .ts-timeline-hdr-time,
+    .ts-timeline-hdr-duration,
+    .ts-timeline-hdr-name,
+    .ts-timeline-hdr-status {
+        text-align: left;
+    }
+    
+    /* Property tables responsive */
+    .ts-pgrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .ts-pgrid-label,
+    .ts-pgrid-value {
+        text-align: left;
+        border-width: 1px;
+    }
+    
+    .mojo-prop-table {
+        grid-template-columns: 1fr;
+    }
+    
+    .mojo-prop-table-item-label {
+        text-align: left;
+        border-radius: 4px 4px 0 0;
+        border-width: 2px 2px 0 2px;
+    }
+    
+    .mojo-prop-table-item-value {
+        border-radius: 0;
+        border-width: 0 2px 0 2px;
+    }
+    
+    .mojo-prop-table-item-copy {
+        border-radius: 0 0 4px 4px;
+        border-width: 0 2px 2px 2px;
+        width: 100%;
+        padding: 8px;
+    }
+    
+    /* Landscape objects responsive */
+    .ts-lscape-device-group-items {
+        flex-direction: column;
+    }
+    
+    .ts-lscape-object-item {
+        grid-template-columns: 1fr;
+    }
+    
+    .ts-lscape-item-prop-lbl {
+        text-align: left;
+    }
+    
+    /* Artifact iframe responsive */
+    .ts-artifact-tab-iframe {
+        height: 300px;
+    }
+    
+    /* Tab set responsive */
+    .mojo-tabset-label-collection {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .mojo-tab-label {
+        flex-grow: 1;
+        text-align: center;
+    }
+    
+    /* Display mode selector responsive */
+    .ts-display-mode-selector {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .ts-grouping-label {
+        margin-left: 0;
+    }
+}
+
+/* Mobile phones (480px and below) */
+@media (max-width: 480px) {
+    /* Reduce padding and margins */
+    .section-body {
+        padding: 5px;
+    }
+    
+    .ts-section-detail {
+        padding: 8px;
+    }
+    
+    /* Banner further adjustments */
+    .ts-banner-logo {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .ts-banner-prop-label,
+    .ts-banner-prop-value {
+        font-size: 11pt;
+        min-width: auto;
+    }
+    
+    .ts-banner-metrics-label,
+    .ts-banner-metrics-value {
+        font-size: 11pt;
+        min-width: auto;
+    }
+    
+    /* Results text size */
+    .ts-results-hdr-start,
+    .ts-results-hdr-name,
+    .ts-results-hdr-e,
+    .ts-results-hdr-f,
+    .ts-results-hdr-s,
+    .ts-results-hdr-p {
+        font-size: 12pt;
+    }
+    
+    .ts-results-item-start,
+    .ts-results-item-name,
+    .ts-results-item-score,
+    .ts-results-grp-name,
+    .ts-results-grp-score {
+        font-size: 11pt;
+    }
+    
+    /* Collapsible headers */
+    .mojo-collapsible-header,
+    .mojo-collapsible-lvl2-header,
+    .mojo-collapsible-lvl3-header,
+    .ts-errors-collapsible-header,
+    .ts-failures-collapsible-header {
+        font-size: 14pt;
+    }
+    
+    /* Tree view adjustments */
+    .ts-tree-node-name {
+        font-size: 11pt;
+    }
+    
+    .ts-tree-node-metrics {
+        font-size: 10pt;
+        flex-wrap: wrap;
+    }
+    
+    .ts-tree-node-content {
+        margin-left: 5px;
+        padding-left: 8px;
+    }
+    
+    /* Timeline adjustments */
+    .ts-timeline-item-name {
+        font-size: 11pt;
+    }
+    
+    .ts-timeline-item-time {
+        font-size: 10pt;
+    }
+    
+    /* Exception trace adjustments */
+    .ts-exception-content {
+        padding: 5px;
+        font-size: 10pt;
+    }
+    
+    /* Sidebar width adjustment */
+    .ts-sidebar-nav {
+        width: 260px;
+    }
+    
+    /* Filter toolbar stacking */
+    .ts-filter-toolbar {
+        padding: 8px;
+        gap: 10px;
+    }
+    
+    .ts-filter-btn {
+        padding: 8px 10px;
+        font-size: 10pt;
+    }
+    
+    /* Search input full width */
+    .ts-search-container {
+        width: 100%;
+        max-width: none;
+    }
+}
+
+/* Very small screens (320px and below) */
+@media (max-width: 320px) {
+    .ts-banner-prop-label,
+    .ts-banner-prop-value {
+        font-size: 10pt;
+    }
+    
+    .ts-banner-metrics-label,
+    .ts-banner-metrics-value {
+        font-size: 10pt;
+    }
+    
+    .ts-sidebar-nav {
+        width: 100%;
+    }
+    
+    .ts-filter-btn {
+        padding: 6px 8px;
+        font-size: 9pt;
+    }
+}
+
+/* =======================================================================
+                        LANDSCAPE ORIENTATION ADJUSTMENTS
+   =======================================================================*/
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .ts-banner-job {
+        flex-direction: row;
+    }
+    
+    .ts-banner-content {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .ts-banner-metrics-panel {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+    
+    .ts-sidebar-nav {
+        width: 240px;
+    }
+}
+
+/* =======================================================================
+                        PRINT STYLES
+   =======================================================================*/
+
+@media print {
+    .ts-mobile-nav-toggle,
+    .ts-sidebar-nav,
+    .ts-sidebar-overlay {
+        display: none !important;
+    }
+    
+    .ts-filter-toolbar {
+        display: none !important;
+    }
+    
+    .ts-export-container {
+        display: none !important;
+    }
+    
+    .section-body {
+        margin-left: 0 !important;
+    }
+}
+
+/* =======================================================================
+                        HIGH CONTRAST MODE SUPPORT
+   =======================================================================*/
+
+@media (prefers-contrast: high) {
+    .ts-mobile-nav-toggle {
+        border: 2px solid white;
+    }
+    
+    .ts-sidebar-nav-link {
+        border-left-width: 4px;
+    }
+    
+    .ts-filter-btn {
+        border-width: 3px;
+    }
+}
+
+/* =======================================================================
+                        REDUCED MOTION SUPPORT
+   =======================================================================*/
+
+@media (prefers-reduced-motion: reduce) {
+    .ts-mobile-nav-toggle-icon span,
+    .ts-sidebar-nav,
+    .ts-sidebar-overlay,
+    .section-header,
+    .section-body,
+    .section-footer,
+    .ts-filter-btn,
+    .ts-export-btn,
+    .ts-timeline-bar {
+        transition: none;
+    }
+}

@@ -1,0 +1,144 @@
+
+@property --color-error {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: maroon;
+}
+
+@property --color-fail {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: red;
+}
+
+@property --color-ghost {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #B0B0B0;
+}
+
+@property --color-pass {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: green;
+}
+
+@property --color-skip {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: gray;
+}
+
+@property --color-warn {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: orange;
+}
+
+
+@property --color-error-background {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: rgb(252, 142, 142);
+}
+
+@property --color-fail-background {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: rgb(255, 171, 171);
+}
+
+@property --color-ghost-background {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #d6d4d4;
+}
+
+@property --color-pass-background {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: rgb(175, 231, 175);
+}
+
+@property --color-skip-background {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: rgb(221, 199, 199);
+}
+
+@property --color-warn-background {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: rgb(204, 170, 108);
+}
+
+
+@property --color-banner-background-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #0e0e25;
+}
+
+@property --color-banner-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: whitesmoke;
+}
+
+@property --color-section-header-background-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #50526e;
+}
+
+@property --color-section-header-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: whitesmoke;
+}
+
+@property --color-subsection-header-background-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: #50526e;
+}
+
+@property --color-subsection-header-color {
+    syntax: "<color>";
+    inherits: false;
+    initial-value: whitesmoke;
+}
+
+@property --image-logo {
+    syntax: "<url>";
+    inherits: false;
+    initial-value: url("/static/v2/images/test-report-banner-background-image.png");
+}
+
+
+/* =======================================================================
+                                  COLOR CLASSES
+   =======================================================================*/
+.color-error {
+    color: var(--color-error) !important;
+}
+
+.color-fail {
+    color: var(--color-fail) !important;
+}
+
+.color-ghost {
+    color: var(--color-ghost) !important;
+}
+
+.color-pass {
+    color: var(--color-pass) !important;
+}
+
+.color-skip {
+    color: var(--color-skip) !important;
+}
+
+.color-warn {
+    color: var(--color-warn) !important;
+}

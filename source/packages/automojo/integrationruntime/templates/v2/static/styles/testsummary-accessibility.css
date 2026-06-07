@@ -1,0 +1,413 @@
+/* =======================================================================
+    Author: "Myron Walker"
+    Copyright: "Copyright 2024, Myron W Walker"
+    Version: = "2.0.0"
+    Email: myron.walker@gmail.com
+    
+    Accessibility Styles for TestSummary HTML Report
+    Provides enhanced focus indicators, screen reader utilities,
+    and keyboard navigation support.
+ =======================================================================*/
+
+/* =======================================================================
+                        SKIP LINK STYLES
+   =======================================================================*/
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background-color: #000;
+    color: #fff;
+    padding: 8px 16px;
+    z-index: 10000;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 0 0 4px 0;
+    transition: top 0.3s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid #ffcc00;
+    outline-offset: 2px;
+}
+
+/* =======================================================================
+                    SCREEN READER ONLY UTILITIES
+   =======================================================================*/
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* =======================================================================
+                    KEYBOARD NAVIGATION FOCUS STYLES
+   =======================================================================*/
+
+/* Enhanced focus indicators when using keyboard navigation */
+.keyboard-navigation *:focus {
+    outline: 3px solid #005fcc !important;
+    outline-offset: 2px !important;
+}
+
+.keyboard-navigation *:focus:not(:focus-visible) {
+    outline: none !important;
+}
+
+/* Focus visible polyfill support */
+*:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+}
+
+/* Remove default focus outline for mouse users */
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* =======================================================================
+                    INTERACTIVE ELEMENT FOCUS STYLES
+   =======================================================================*/
+
+/* Buttons */
+button:focus-visible,
+.ts-filter-btn:focus-visible,
+.ts-export-btn:focus-visible,
+.ts-date-clear:focus-visible,
+.ts-search-clear:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0, 95, 204, 0.25);
+}
+
+/* Links */
+a:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+    text-decoration: underline;
+}
+
+/* Form inputs */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 0;
+    border-color: #005fcc;
+    box-shadow: 0 0 0 3px rgba(0, 95, 204, 0.25);
+}
+
+/* Details/Summary elements */
+summary:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+}
+
+details[open] > summary:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+}
+
+/* =======================================================================
+                    COLLAPSIBLE COMPONENT FOCUS STYLES
+   =======================================================================*/
+
+.mojo-collapsible-button:focus-visible,
+.mojo-collapsible-lvl2-button:focus-visible,
+.mojo-collapsible-lvl3-button:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+    background-color: #d0d0d0;
+}
+
+.ts-errors-collapsible-button:focus-visible,
+.ts-failures-collapsible-button:focus-visible,
+.ts-importfailure-trace-button:focus-visible {
+    outline: 3px solid #ffcc00;
+    outline-offset: 2px;
+}
+
+/* =======================================================================
+                    TAB COMPONENT FOCUS STYLES
+   =======================================================================*/
+
+.mojo-tab-label:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+    background-color: rgba(0, 95, 204, 0.1);
+}
+
+.mojo-tab-label[aria-selected="true"]:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+}
+
+/* =======================================================================
+                    ICON TARGET FOCUS STYLES
+   =======================================================================*/
+
+.mojo-icon-target:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* =======================================================================
+                    PROPERTY COMPONENT FOCUS STYLES
+   =======================================================================*/
+
+.mojo-prop-single-copy:focus-visible,
+.mojo-prop-table-item-copy:focus-visible {
+    outline: 3px solid #005fcc;
+    outline-offset: 2px;
+    background-color: rgba(0, 95, 204, 0.1);
+}
+
+/* =======================================================================
+                    RESULT ITEM FOCUS STYLES
+   =======================================================================*/
+
+testsummary-resultgroup:focus-within,
+testsummary-resultitem:focus-within,
+testsummary-taskgroup:focus-within,
+testsummary-taskresult:focus-within {
+    outline: 2px solid #005fcc;
+    outline-offset: 2px;
+}
+
+/* =======================================================================
+                    HIGH CONTRAST MODE SUPPORT
+   =======================================================================*/
+
+@media (prefers-contrast: high) {
+    .skip-link:focus {
+        outline: 4px solid #fff;
+        background-color: #000;
+    }
+
+    *:focus-visible {
+        outline: 4px solid currentColor !important;
+        outline-offset: 3px !important;
+    }
+
+    .ts-filter-btn {
+        border-width: 3px;
+    }
+
+    .ts-filter-btn-active {
+        border-width: 4px;
+    }
+
+    .color-pass {
+        color: #006400 !important;
+    }
+
+    .color-fail {
+        color: #8b0000 !important;
+    }
+
+    .color-error {
+        color: #4a0000 !important;
+    }
+
+    .color-skip {
+        color: #404040 !important;
+    }
+}
+
+/* =======================================================================
+                    REDUCED MOTION SUPPORT
+   =======================================================================*/
+
+@media (prefers-reduced-motion: reduce) {
+    .skip-link {
+        transition: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* =======================================================================
+                    ARIA LIVE REGION STYLES
+   =======================================================================*/
+
+#aria-live-region {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* =======================================================================
+                    LANDMARK REGION VISUAL INDICATORS
+   =======================================================================*/
+
+/* Optional: Visual indicators for landmark regions during development */
+[role="banner"],
+[role="main"],
+[role="contentinfo"],
+[role="navigation"],
+[role="region"] {
+    /* Uncomment for debugging:
+    outline: 1px dashed rgba(0, 0, 255, 0.3);
+    */
+}
+
+/* =======================================================================
+                    TOOLTIP ACCESSIBILITY
+   =======================================================================*/
+
+.mojo-tooltip-text {
+    /* Ensure tooltips are accessible */
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 300px;
+}
+
+/* Show tooltip on focus for keyboard users */
+.mojo-icon-target:focus-visible .mojo-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* =======================================================================
+                    FORM LABEL ASSOCIATIONS
+   =======================================================================*/
+
+/* Ensure labels are visually associated with inputs */
+.ts-display-mode-selector label,
+.ts-date-label {
+    cursor: pointer;
+}
+
+.ts-display-mode-selector label:hover,
+.ts-date-label:hover {
+    text-decoration: underline;
+}
+
+/* =======================================================================
+                    BUTTON STATE INDICATORS
+   =======================================================================*/
+
+/* Ensure button states are clearly indicated */
+.ts-filter-btn[aria-pressed="true"] {
+    font-weight: bold;
+}
+
+.ts-filter-btn[aria-pressed="true"]::before {
+    content: "✓ ";
+}
+
+/* =======================================================================
+                    EXPANDED/COLLAPSED STATE INDICATORS
+   =======================================================================*/
+
+[aria-expanded="true"] .mojo-collapsible-icon,
+[aria-expanded="true"] .mojo-collapsible-lvl2-icon,
+[aria-expanded="true"] .mojo-collapsible-lvl3-icon {
+    transform: rotate(45deg);
+}
+
+[aria-expanded="false"] .mojo-collapsible-icon,
+[aria-expanded="false"] .mojo-collapsible-lvl2-icon,
+[aria-expanded="false"] .mojo-collapsible-lvl3-icon {
+    transform: rotate(0deg);
+}
+
+/* =======================================================================
+                    MINIMUM TARGET SIZE
+   =======================================================================*/
+
+/* Ensure interactive elements meet minimum touch target size (44x44px) */
+.ts-filter-btn,
+.ts-export-btn,
+.ts-date-clear,
+.ts-search-clear,
+.mojo-icon-target,
+.mojo-prop-single-copy,
+.mojo-prop-table-item-copy {
+    min-width: 44px;
+    min-height: 44px;
+}
+
+/* =======================================================================
+                    COLOR CONTRAST ENHANCEMENTS
+   =======================================================================*/
+
+/* Ensure sufficient color contrast for text */
+.ts-filter-summary {
+    color: #333;
+    background-color: #e8e8e8;
+}
+
+.ts-timeline-duration-text {
+    color: #000;
+    text-shadow: 0 0 2px #fff;
+}
+
+/* =======================================================================
+                    PRINT ACCESSIBILITY
+   =======================================================================*/
+
+@media print {
+    .skip-link,
+    #aria-live-region {
+        display: none !important;
+    }
+
+    /* Ensure colors print correctly */
+    .color-pass {
+        color: #006400 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .color-fail {
+        color: #8b0000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .color-error {
+        color: #4a0000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .color-skip {
+        color: #666 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

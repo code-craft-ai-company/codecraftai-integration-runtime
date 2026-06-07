@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!--
+        __author__ = "Myron Walker"
+        __copyright__ = "Copyright 2025, Automation Mojo LLC"
+        
+        Log File Viewer Tab
+        
+        This tab page displays log files with search functionality,
+        line numbers, and log level highlighting.
+    -->
+    <head>
+        <title>Log Files</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+
+        <script type="text/javascript" src="/static/v2/javascript/testsummary-helpers.js"></script>
+        <link rel="stylesheet" href="/static/v2/styles/tabs-responsive.css" ></link>
+
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                padding: 10px;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .page-header {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+                border-bottom: 1px solid #ddd;
+                gap: 10px;
+            }
+
+            .page-title {
+                margin: 0;
+                font-size: 1.5em;
+                color: #333;
+            }
+
+            .search-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+            }
+
+            .search-input {
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+                width: 250px;
+                max-width: 100%;
+                min-height: 44px;
+            }
+
+            .search-input:focus {
+                outline: none;
+                border-color: #2E5A8F;
+                box-shadow: 0 0 3px rgba(46, 90, 143, 0.3);
+            }
+
+            .match-count {
+                font-size: 12px;
+                color: #666;
+            }
+
+            .log-container {
+                margin-bottom: 20px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                overflow: hidden;
+            }
+
+            .log-header {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 15px;
+                background-color: #f5f5f5;
+                border-bottom: 1px solid #ddd;
+                cursor: pointer;
+                gap: 10px;
+            }
+
+            .log-header:hover {
+                background-color: #eee;
+            }
+
+            .log-filename {
+                font-weight: bold;
+                color: #333;
+                word-break: break-all;
+            }
+
+            .log-meta {
+                font-size: 12px;
+                color: #666;
+                margin-left: 10px;
+            }
+
+            .log-header-left {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .log-header-right {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .log-toggle {
+                font-size: 18px;
+                color: #666;
+                user-select: none;
+            }
+
+            .log-download {
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background-color: #fff;
+                cursor: pointer;
+                font-size: 12px;
+                color: #333;
+                min-height: 44px;
+            }
+
+            .log-download:hover {
+                background-color: #e9e9e9;
+            }
+
+            .log-content {
+                max-height: 500px;
+                overflow: auto;
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .log-content.collapsed {
+                display: none;
+            }
+
+            .log-content pre {
+                margin: 0;
+                padding: 15px;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 13px;
+                line-height: 1.4;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+
+            .log-line {
+                display: block;
+            }
+
+            .log-line:hover {
+                background-color: #2d2d2d;
+            }
+
+            .log-line-number {
+                display: inline-block;
+                width: 50px;
+                color: #858585;
+                text-align: right;
+                padding-right: 15px;
+                user-select: none;
+            }
+
+            .log-line-content {
+                color: #d4d4d4;
+            }
+
+            /* Log level highlighting */
+            .log-level-error {
+                color: #f48771;
+            }
+
+            .log-level-warn {
+                color: #cca700;
+            }
+
+            .log-level-info {
+                color: #3dc9b0;
+            }
+
+            .log-level-debug {
+                color: #9cdcfe;
+            }
+
+            .highlight {
+                background-color: #613214;
+                color: #fff;
+                padding: 1px 2px;
+                border-radius: 2px;
+            }
+
+            .no-logs {
+                padding: 40px;
+                text-align: center;
+                color: #666;
+            }
+
+            .loading {
+                padding: 40px;
+                text-align: center;
+                color: #666;
+            }
+
+            .filter-buttons {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 5px;
+                margin-left: 10px;
+            }
+
+            .filter-btn {
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                background-color: #fff;
+                cursor: pointer;
+                font-size: 11px;
+                min-height: 44px;
+            }
+
+            .filter-btn:hover {
+                background-color: #e9e9e9;
+            }
+
+            .filter-btn.active {
+                background-color: #2E5A8F;
+                color: #fff;
+                border-color: #2E5A8F;
+            }
+
+            .filter-btn.error { border-left: 3px solid #f48771; }
+            .filter-btn.warn { border-left: 3px solid #cca700; }
+            .filter-btn.info { border-left: 3px solid #3dc9b0; }
+            .filter-btn.debug { border-left: 3px solid #9cdcfe; }
+            
+            /* Responsive adjustments */
+            @media (max-width: 768px) {
+                .filter-buttons {
+                    margin-left: 0;
+                    width: 100%;
+                }
+                
+                .search-input {
+                    width: 100%;
+                }
+                
+                .log-line-number {
+                    width: 40px;
+                    padding-right: 10px;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                .log-content pre {
+                    font-size: 11px;
+                    padding: 10px;
+                }
+                
+                .log-line-number {
+                    width: 35px;
+                    font-size: 10px;
+                }
+            }
+        </style>
+
+        <script type="text/javascript">
+            // Supported log file extensions
+            const LOG_EXTENSIONS = ["log", "txt", "out"];
+            
+            // Global state
+            let g_logs = [];
+            let g_searchTerm = "";
+            let g_activeFilters = new Set();
+            let g_matchCount = 0;
+
+            /**
+             * Fetch log files from the catalog
+             */
+            async function fetch_log_files() {
+                try {
+                    const catalog = await fetch_json("catalog.json");
+                    if (!catalog || !catalog.files) {
+                        return [];
+                    }
+                    
+                    return catalog.files.filter(filename => {
+                        const ext = filename.split('.').pop().toLowerCase();
+                        return LOG_EXTENSIONS.includes(ext);
+                    });
+                } catch (err) {
+                    console.error("Failed to load catalog:", err);
+                    return [];
+                }
+            }
+
+            /**
+             * Fetch the content of a log file
+             */
+            async function fetch_log_content(filename) {
+                try {
+                    const response = await fetch(filename);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+                    return await response.text();
+                } catch (err) {
+                    console.error(`Failed to load ${filename}:`, err);
+                    return `[Error loading file: ${err.message}]`;
+                }
+            }
+
+            /**
+             * Determine the log level from a line of text
+             */
+            function getLogLevel(line) {
+                const upperLine = line.toUpperCase();
+                if (upperLine.includes("ERROR") || upperLine.includes("FATAL") || upperLine.includes("CRITICAL") || upperLine.includes("EXCEPTION")) {
+                    return "error";
+                }
+                if (upperLine.includes("WARN") || upperLine.includes("WARNING")) {
+                    return "warn";
+                }
+                if (upperLine.includes("INFO")) {
+                    return "info";
+                }
+                if (upperLine.includes("DEBUG") || upperLine.includes("TRACE")) {
+                    return "debug";
+                }
+                return "";
+            }
+
+            /**
+             * Escape special regex characters
+             */
+            function escapeRegex(string) {
+                return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            }
+
+            /**
+             * Format log content with line numbers and syntax highlighting
+             */
+            function formatLogContent(content, searchTerm, filters) {
+                const lines = content.split('\n');
+                let html = '';
+                let matchCount = 0;
+                
+                lines.forEach((line, index) => {
+                    const lineNum = index + 1;
+                    const logLevel = getLogLevel(line);
+                    
+                    // Apply filter if active
+                    if (filters.size > 0 && logLevel && !filters.has(logLevel)) {
+                        return; // Skip this line
+                    }
+                    
+                    const levelClass = logLevel ? `log-level-${logLevel}` : '';
+                    
+                    // Escape HTML entities
+                    let escapedLine = line
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;');
+                    
+                    // Highlight search term if present
+                    if (searchTerm && searchTerm.length > 0) {
+                        const regex = new RegExp(`(${escapeRegex(searchTerm)})`, 'gi');
+                        const matches = escapedLine.match(regex);
+                        if (matches) {
+                            matchCount += matches.length;
+                        }
+                        escapedLine = escapedLine.replace(regex, '<span class="highlight">$1</span>');
+                    }
+                    
+                    html += `<span class="log-line">`;
+                    html += `<span class="log-line-number">${lineNum}</span>`;
+                    html += `<span class="log-line-content ${levelClass}">${escapedLine}</span>`;
+                    html += `</span>\n`;
+                });
+                
+                return { html, matchCount };
+            }
+
+            /**
+             * Toggle log content visibility
+             */
+            function toggleLog(logId) {
+                const contentEl = document.getElementById(`log-content-${logId}`);
+                const toggleEl = document.getElementById(`log-toggle-${logId}`);
+                
+                if (contentEl.classList.contains('collapsed')) {
+                    contentEl.classList.remove('collapsed');
+                    toggleEl.textContent = '−';
+                } else {
+                    contentEl.classList.add('collapsed');
+                    toggleEl.textContent = '+';
+                }
+            }
+
+            /**
+             * Download a log file
+             */
+            function downloadLog(filename, event) {
+                event.stopPropagation();
+                const link = document.createElement('a');
+                link.href = filename;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+
+            /**
+             * Create a log container element
+             */
+            function createLogContainer(filename, content, index) {
+                const container = document.createElement('div');
+                container.className = 'log-container';
+                container.id = `log-${index}`;
+                
+                const lineCount = content.split('\n').length;
+                const fileSize = new Blob([content]).size;
+                const sizeStr = fileSize > 1024 
+                    ? `${(fileSize / 1024).toFixed(1)} KB` 
+                    : `${fileSize} bytes`;
+                
+                const { html: formattedContent } = formatLogContent(content, g_searchTerm, g_activeFilters);
+                
+                container.innerHTML = `
+                    <div class="log-header" onclick="toggleLog(${index})">
+                        <div class="log-header-left">
+                            <span class="log-filename">${filename}</span>
+                            <span class="log-meta">${lineCount} lines, ${sizeStr}</span>
+                        </div>
+                        <div class="log-header-right">
+                            <button class="log-download" onclick="downloadLog('${filename}', event)" title="Download">⬇ Download</button>
+                            <span class="log-toggle" id="log-toggle-${index}">−</span>
+                        </div>
+                    </div>
+                    <div class="log-content" id="log-content-${index}">
+                        <pre>${formattedContent}</pre>
+                    </div>
+                `;
+                
+                return container;
+            }
+
+            /**
+             * Update match count display
+             */
+            function updateMatchCount() {
+                const matchCountEl = document.getElementById('match-count');
+                if (g_searchTerm && g_matchCount > 0) {
+                    matchCountEl.textContent = `${g_matchCount} matches`;
+                    matchCountEl.style.display = 'inline';
+                } else if (g_searchTerm && g_matchCount === 0) {
+                    matchCountEl.textContent = 'No matches';
+                    matchCountEl.style.display = 'inline';
+                } else {
+                    matchCountEl.style.display = 'none';
+                }
+            }
+
+            /**
+             * Re-render all log content
+             */
+            function rerenderLogs() {
+                g_matchCount = 0;
+                
+                g_logs.forEach((log, index) => {
+                    const contentEl = document.getElementById(`log-content-${index}`);
+                    if (contentEl) {
+                        const preEl = contentEl.querySelector('pre');
+                        if (preEl) {
+                            const { html, matchCount } = formatLogContent(log.content, g_searchTerm, g_activeFilters);
+                            preEl.innerHTML = html;
+                            g_matchCount += matchCount;
+                        }
+                    }
+                });
+                
+                updateMatchCount();
+            }
+
+            /**
+             * Handle search input
+             */
+            function handleSearch(event) {
+                g_searchTerm = event.target.value;
+                rerenderLogs();
+            }
+
+            /**
+             * Toggle filter
+             */
+            function toggleFilter(level) {
+                const btn = document.querySelector(`.filter-btn.${level}`);
+                
+                if (g_activeFilters.has(level)) {
+                    g_activeFilters.delete(level);
+                    btn.classList.remove('active');
+                } else {
+                    g_activeFilters.add(level);
+                    btn.classList.add('active');
+                }
+                
+                rerenderLogs();
+            }
+
+            /**
+             * Refresh the log display
+             */
+            async function refreshLogs() {
+                const containerEl = document.getElementById('logs-container');
+                containerEl.innerHTML = '<div class="loading">Loading log files...</div>';
+                
+                const logFiles = await fetch_log_files();
+                
+                if (logFiles.length === 0) {
+                    containerEl.innerHTML = '<div class="no-logs">No log files found in this directory.</div>';
+                    return;
+                }
+                
+                containerEl.innerHTML = '';
+                g_logs = [];
+                
+                for (let i = 0; i < logFiles.length; i++) {
+                    const filename = logFiles[i];
+                    const content = await fetch_log_content(filename);
+                    
+                    g_logs.push({ filename, content });
+                    
+                    const logEl = createLogContainer(filename, content, i);
+                    containerEl.appendChild(logEl);
+                }
+            }
+
+            /**
+             * Initialize the page
+             */
+            async function initPage() {
+                await refreshLogs();
+            }
+
+            // Start loading when the page is ready
+            document.addEventListener('DOMContentLoaded', initPage);
+        </script>
+    </head>
+
+    <body>
+        <div class="page-header">
+            <h3 class="page-title">Log Files</h3>
+            <div class="search-container">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    placeholder="Search in logs..." 
+                    oninput="handleSearch(event)"
+                >
+                <span class="match-count" id="match-count" style="display: none;"></span>
+                <div class="filter-buttons">
+                    <button class="filter-btn error" onclick="toggleFilter('error')" title="Filter errors">Error</button>
+                    <button class="filter-btn warn" onclick="toggleFilter('warn')" title="Filter warnings">Warn</button>
+                    <button class="filter-btn info" onclick="toggleFilter('info')" title="Filter info">Info</button>
+                    <button class="filter-btn debug" onclick="toggleFilter('debug')" title="Filter debug">Debug</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="logs-container">
+            <div class="loading">Loading...</div>
+        </div>
+    </body>
+</html>
