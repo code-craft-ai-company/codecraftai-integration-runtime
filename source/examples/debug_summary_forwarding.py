@@ -6,11 +6,11 @@
     This example shows how to configure a ProgressConcentratorServer to periodically
     forward aggregated summaries to external monitoring services via HTTP POST.
 
-    .. moduleauthor:: AutomationX
+    .. moduleauthor:: CodeCraftX
 """
 
-__author__ = "AutomationX"
-__copyright__ = "Copyright 2025, Automation Mojo LLC"
+__author__ = "CodeCraftX"
+__copyright__ = "Copyright 2025, Code Craft AI LLC"
 __credits__ = []
 
 
@@ -21,14 +21,14 @@ import uuid
 
 from datetime import datetime
 
-from automojo.testbase.results.model.buildinfo import BuildInfo
-from automojo.testbase.results.model.forwardinginfo import ForwardingInfo
-from automojo.testbase.results.model.jobinfo import JobInfo
-from automojo.testbase.results.model.pipelineinfo import PipelineInfo
-from automojo.testbase.results.model.renderinfo import RenderInfo
+from ccai.testbase.results.model.buildinfo import BuildInfo
+from ccai.testbase.results.model.forwardinginfo import ForwardingInfo
+from ccai.testbase.results.model.jobinfo import JobInfo
+from ccai.testbase.results.model.pipelineinfo import PipelineInfo
+from ccai.testbase.results.model.renderinfo import RenderInfo
 
-from automojo.testbase.results.recorders.jsonresultrecorder import JsonResultRecorder
-from automojo.integrationruntime.results.concentrators.progressconcentratorservice import (
+from ccai.testbase.results.recorders.jsonresultrecorder import JsonResultRecorder
+from ccai.integrationruntime.results.concentrators.progressconcentratorservice import (
     ProgressConcentratorServer
 )
 

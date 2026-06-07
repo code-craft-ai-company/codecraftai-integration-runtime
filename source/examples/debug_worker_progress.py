@@ -6,11 +6,11 @@
     This example shows how remote test workers can submit progress updates
     to a ProgressConcentratorServer via HTTP POST requests.
 
-    .. moduleauthor:: AutomationX
+    .. moduleauthor:: CodeCraftX
 """
 
-__author__ = "AutomationX"
-__copyright__ = "Copyright 2025, Automation Mojo LLC"
+__author__ = "CodeCraftX"
+__copyright__ = "Copyright 2025, Code Craft AI LLC"
 __credits__ = []
 
 
@@ -25,16 +25,16 @@ from datetime import datetime
 
 import requests
 
-from automojo.testbase.results.model.buildinfo import BuildInfo
-from automojo.testbase.results.model.jobinfo import JobInfo
-from automojo.testbase.results.model.pipelineinfo import PipelineInfo
-from automojo.testbase.results.model.progresscode import ProgressCode
-from automojo.testbase.results.model.progressinfo import ProgressInfo
-from automojo.testbase.results.model.progresstype import ProgressType
-from automojo.testbase.results.model.renderinfo import RenderInfo
+from ccai.testbase.results.model.buildinfo import BuildInfo
+from ccai.testbase.results.model.jobinfo import JobInfo
+from ccai.testbase.results.model.pipelineinfo import PipelineInfo
+from ccai.testbase.results.model.progresscode import ProgressCode
+from ccai.testbase.results.model.progressinfo import ProgressInfo
+from ccai.testbase.results.model.progresstype import ProgressType
+from ccai.testbase.results.model.renderinfo import RenderInfo
 
-from automojo.testbase.results.recorders.jsonresultrecorder import JsonResultRecorder
-from automojo.integrationruntime.results.concentrators.progressconcentratorservice import (
+from ccai.testbase.results.recorders.jsonresultrecorder import JsonResultRecorder
+from ccai.integrationruntime.results.concentrators.progressconcentratorservice import (
     ProgressConcentratorServer
 )
 
