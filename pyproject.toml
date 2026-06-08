@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "automojo-integration-runtime"
-description = "Automation Mojo - Integration Runtime"
+name = "codecraftai-integration-runtime"
+description = "Code Craft AI - Integration Runtime"
 version = "0.0.1"
 authors = [
     "Myron Walker"
@@ -15,16 +15,16 @@ classifiers = [
 keywords = [
     "python"
 ]
-packages = [{include="automojo", from="source/packages"}]
+packages = [{include="ccai", from="source/packages"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 debugpy = "^1.8.12"
-automojo-errors = { git = "https://github.com/automationmojo/automojo-errors.git", branch = "main" }
-automojo-xmodules = { git = "https://github.com/automationmojo/automojo-xmodules.git", branch = "main" }
-automojo-extension = { git = "https://github.com/automationmojo/automojo-extension.git", branch = "main" }
-automojo-this-app = { git = "https://github.com/automationmojo/automojo-this-app.git", branch = "main" }
-automojo-testbase = { git = "https://github.com/automationmojo/automojo-testbase.git", branch = "main" }
+codecraftai-errors = { git = "https://github.com/automationmojo/codecraftai-errors.git", branch = "main" }
+codecraftai-xmodules = { git = "https://github.com/automationmojo/codecraftai-xmodules.git", branch = "main" }
+codecraftai-extension = { git = "https://github.com/automationmojo/codecraftai-extension.git", branch = "main" }
+codecraftai-this-app = { git = "https://github.com/automationmojo/codecraftai-this-app.git", branch = "main" }
+codecraftai-testbase = { git = "https://github.com/automationmojo/codecraftai-testbase.git", branch = "main" }
 
 
 [tool.poetry.group.dev.dependencies]
