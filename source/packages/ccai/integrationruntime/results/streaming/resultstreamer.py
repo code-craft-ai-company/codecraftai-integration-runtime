@@ -1,5 +1,5 @@
 """
-    .. module:: ccai.testbase.results.streaming.resultstreamer
+    .. module:: ccai.integrationruntime.results.streaming.resultstreamer
     :platform: Darwin, Linux, Unix, Windows
     :synopsis: Module for result streaming to external services.
 
@@ -39,6 +39,10 @@ from ccai.testbase.results.model.streaminginfo import (
     StreamingProtocol,
     StreamingCallback
 )
+
+# Bound the streaming POST so an unresponsive endpoint cannot wedge the
+# result-streamer daemon thread indefinitely.
+STREAMING_POST_TIMEOUT_SECONDS = 30
 
 
 class StreamingJsonEncoder(json.JSONEncoder):
@@ -427,7 +431,8 @@ class RestResultStreamer(ResultStreamer):
         json_data = json.dumps(payload, cls=StreamingJsonEncoder)
         response = self._session.post(
             self._streaming_info.streaming_url,
-            data=json_data
+            data=json_data,
+            timeout=STREAMING_POST_TIMEOUT_SECONDS
         )
         
         # Check response

@@ -221,7 +221,9 @@ class StreamingResultRecorder(JsonResultRecorder):
         if self._streamer is not None and self._streamer.is_running:
             result_dict = result.as_dict(is_preview=True)
             self._streamer.stream_preview(result_dict)
-    
+
+        return
+
     def record(self, result: ResultNode):
         """
             Records a final result entry and streams it.
@@ -240,7 +242,9 @@ class StreamingResultRecorder(JsonResultRecorder):
         if self._streamer is not None and self._streamer.is_running:
             result_dict = result.as_dict(is_preview=False)
             self._streamer.stream_result(result_dict)
-    
+
+        return
+
     @property
     def streaming_stats(self) -> dict:
         """

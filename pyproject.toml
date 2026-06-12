@@ -3,13 +3,13 @@ name = "codecraftai-integration-runtime"
 description = "Code Craft AI - Integration Runtime"
 version = "0.0.1"
 authors = [
-    "Myron Walker"
+    "Myron Walker <myron.walker@gmail.com>"
 ]
 readme = "README.rst"
-license = "LICENSE.md"
+license = "LicenseRef-CodeCraftAI-Dual-License"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
+    "License :: Other/Proprietary License",
     "Operating System :: POSIX"
 ]
 keywords = [
@@ -19,17 +19,18 @@ packages = [{include="ccai", from="source/packages"}]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-debugpy = "^1.8.12"
+requests = "^2.32.4"
+websocket-client = { version = "^1.8.0", optional = true }
 codecraftai-errors = { git = "https://github.com/automationmojo/codecraftai-errors.git", branch = "main" }
 codecraftai-xmodules = { git = "https://github.com/automationmojo/codecraftai-xmodules.git", branch = "main" }
 codecraftai-extension = { git = "https://github.com/automationmojo/codecraftai-extension.git", branch = "main" }
 codecraftai-this-app = { git = "https://github.com/automationmojo/codecraftai-this-app.git", branch = "main" }
 codecraftai-testbase = { git = "https://github.com/automationmojo/codecraftai-testbase.git", branch = "main" }
 
+[tool.poetry.extras]
+websocket = ["websocket-client"]
 
 [tool.poetry.group.dev.dependencies]
-
-[tool.poetry.group.dbio.dependencies]
 
 [build-system]
 requires = ["poetry-core"]

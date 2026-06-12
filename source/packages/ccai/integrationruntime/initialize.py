@@ -13,10 +13,9 @@
     :class:`ccai.integrationruntime.integratedtestjob.IntegratedTestJob`.
 
     .. note::
-        The HTML summary template + static-resource paths are still physically located in the
-        ``codecraftai-testbase`` package (``templates/v2``); they are resolved here from the testbase
-        package directory until Phase 3 relocates them into this package, at which point
-        :class:`IntegrationResultResources` is repointed at this package's own ``templates/v2``.
+        As of the landed Phase 3 results split, the HTML summary template + static-resource paths
+        live in this package's own ``templates/v2``; :class:`IntegrationResultResources` resolves
+        them from this package directory.
 
     .. moduleauthor:: Myron Walker <myron.walker@gmail.com>
 """

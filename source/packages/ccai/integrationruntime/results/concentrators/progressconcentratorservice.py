@@ -1,5 +1,5 @@
 """
-    .. module:: ccai.testbase.results.concentrators.progressconcentratorservice
+    .. module:: ccai.integrationruntime.results.concentrators.progressconcentratorservice
     :platform: Darwin, Linux, Unix, Windows
     :synopsis: Module for progressconcentratorservice.
 
@@ -27,6 +27,10 @@ from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 # Type alias for server address - compatible with all Python versions
 ServerAddress = Tuple[str, int]
+
+# Bound the summary-forwarding POST so an unresponsive monitoring endpoint cannot
+# wedge the forwarder daemon thread indefinitely.
+FORWARDING_POST_TIMEOUT_SECONDS = 30
 
 from ccai.xmodules.xlogging.enhancedloggers import getEnhancedLogger
 
@@ -430,7 +434,7 @@ class ProgressConcentratorServer(ThreadingMixIn, HTTPServer):
                 # Serialize the summary to JSON using our custom encoder that handles
                 # datetime objects, then POST to the configured monitoring endpoint.
                 summary_json = json.dumps(summary, cls=SummaryJsonEncoder)
-                requests.post(forwarding_url, data=summary_json, headers=headers)
+                requests.post(forwarding_url, data=summary_json, headers=headers, timeout=FORWARDING_POST_TIMEOUT_SECONDS)
 
             except (requests.exceptions.ConnectionError, requests.exceptions.RetryError) as err:
                 # ERROR HANDLING - LOG AND CONTINUE:

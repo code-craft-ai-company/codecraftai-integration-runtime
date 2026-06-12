@@ -9,13 +9,14 @@
     activation-driven integration CLI) that extends the near-standalone
     :mod:`ccai.testbase` single-host test framework.
 
-    Present (Phase 4 core): :class:`IntegratedTestJob` / :class:`DefaultIntegratedTestJob`
-    (``integratedtestjob``), :class:`RuntimeOutputContext` (``runtimeoutputcontext``),
-    :class:`RuntimeRunMetadata` (``runtimerunmetadata``), and the
+    Present (Phase 4 core plus the landed Phase 3 results split): :class:`IntegratedTestJob` /
+    :class:`DefaultIntegratedTestJob` (``integratedtestjob``), :class:`RuntimeOutputContext`
+    (``runtimeoutputcontext``), :class:`RuntimeRunMetadata` (``runtimerunmetadata``), the
     :class:`IntegrationRuntimeDefaultTypeFactory` extension that registers the integration default
-    job type. Still to land: the integration entry point / activation wiring, and the reporting
-    code migrated out of ``codecraftai-testbase`` (JSON/JSOS recorder HTML rendering, ``templates/v2``,
-    streaming, concentrators, result server — Phase 3). See
+    job type, the integration entry point / activation wiring (``entrypoints``, ``initialize``), and
+    the reporting code split out of ``codecraftai-testbase`` -- the JSON/JSOS streaming recorder, HTML
+    summary rendering, ``templates/v2``, streaming infrastructure, progress concentrators, and result
+    server -- all now local to this package. See
     ``REFACTOR-TESTBASE-INTEGRATION-RUNTIME-ROADMAP.md`` at the monorepo root.
 
     .. moduleauthor:: Myron Walker <myron.walker@gmail.com>
