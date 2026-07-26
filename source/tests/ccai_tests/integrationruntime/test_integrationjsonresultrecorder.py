@@ -106,5 +106,64 @@ class TestbaseBaseRecorderOmitsHtmlTests(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(self.output_dir, "catalog.json")))
 
 
+class StaticResourceDeploymentSemanticsTests(unittest.TestCase):
+    """
+        Semantics of update_render_environment, ported from testbase's
+        StaticResourceDeploymentIntegrationTests when the behaviour they
+        exercised relocated here: nested resources keep their relative
+        paths, existing destination files are never overwritten, and a
+        None source deploys nothing.
+    """
+
+    def setUp(self):
+        self.output_dir = tempfile.mkdtemp()
+        self.static_src = os.path.join(self.output_dir, "src_static")
+        self.static_dest = os.path.join(self.output_dir, "static")
+        os.makedirs(self.static_src)
+        return
+
+    def tearDown(self):
+        shutil.rmtree(self.output_dir, ignore_errors=True)
+        return
+
+    def _recorder_with_source(self, source):
+        info = _make_render_info(self.output_dir)
+        info.static_resource_source = source
+        info.static_resource_destination = self.static_dest
+        recorder = IntegrationJsonResultRecorder(runid="r3", start=datetime.now(), render_info=info)
+        return recorder
+
+    def test_nested_static_resources_keep_their_relative_paths(self):
+        os.makedirs(os.path.join(self.static_src, "css", "themes"))
+        with open(os.path.join(self.static_src, "css", "themes", "dark.css"), "w") as fh:
+            fh.write("body { background: black; }")
+
+        recorder = self._recorder_with_source(self.static_src)
+        recorder.update_render_environment()
+
+        deployed = os.path.join(self.static_dest, "css", "themes", "dark.css")
+        self.assertTrue(os.path.exists(deployed))
+
+    def test_existing_destination_files_are_not_overwritten(self):
+        with open(os.path.join(self.static_src, "app.js"), "w") as fh:
+            fh.write("source content")
+        os.makedirs(self.static_dest)
+        with open(os.path.join(self.static_dest, "app.js"), "w") as fh:
+            fh.write("destination content - must survive")
+
+        recorder = self._recorder_with_source(self.static_src)
+        recorder.update_render_environment()
+
+        with open(os.path.join(self.static_dest, "app.js"), "r") as fh:
+            content = fh.read()
+        self.assertEqual(content, "destination content - must survive")
+
+    def test_none_source_deploys_nothing(self):
+        recorder = self._recorder_with_source(None)
+        recorder.update_render_environment()
+
+        self.assertFalse(os.path.exists(self.static_dest))
+
+
 if __name__ == "__main__":
     unittest.main()
