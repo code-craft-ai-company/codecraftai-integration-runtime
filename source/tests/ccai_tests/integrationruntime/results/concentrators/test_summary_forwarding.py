@@ -147,7 +147,7 @@ class SummaryForwardingLoopTests(unittest.TestCase):
         
         posted_summaries = []
         
-        def capture_post(url, data=None, headers=None):
+        def capture_post(url, data=None, headers=None, timeout=None):
             if data is not None:
                 posted_summaries.append(json.loads(data))
             mock_response = Mock()
@@ -185,7 +185,7 @@ class SummaryForwardingLoopTests(unittest.TestCase):
         
         posted_urls = []
         
-        def capture_post(url, data=None, headers=None):
+        def capture_post(url, data=None, headers=None, timeout=None):
             posted_urls.append(url)
             mock_response = Mock()
             return mock_response
@@ -218,7 +218,7 @@ class SummaryForwardingLoopTests(unittest.TestCase):
         
         post_times = []
         
-        def capture_post(url, data=None, headers=None):
+        def capture_post(url, data=None, headers=None, timeout=None):
             post_times.append(time.time())
             mock_response = Mock()
             return mock_response
@@ -334,7 +334,7 @@ class SummaryForwardingHeaderTests(unittest.TestCase):
         
         captured_headers = []
         
-        def capture_post(url, data=None, headers=None):
+        def capture_post(url, data=None, headers=None, timeout=None):
             if headers is not None:
                 captured_headers.append(headers.copy())
             mock_response = Mock()
@@ -375,7 +375,7 @@ class SummaryForwardingHeaderTests(unittest.TestCase):
         
         captured_headers = []
         
-        def capture_post(url, data=None, headers=None):
+        def capture_post(url, data=None, headers=None, timeout=None):
             if headers is not None:
                 captured_headers.append(headers.copy())
             mock_response = Mock()
@@ -415,7 +415,7 @@ class SummaryForwardingHeaderTests(unittest.TestCase):
         
         captured_headers = []
         
-        def capture_post(url, data=None, headers=None):
+        def capture_post(url, data=None, headers=None, timeout=None):
             if headers is not None:
                 captured_headers.append(headers.copy())
             mock_response = Mock()
@@ -532,7 +532,7 @@ class SummaryForwardingErrorHandlingTests(unittest.TestCase):
         
         exception_raised = threading.Event()
         
-        def raise_exception(url, data=None, headers=None):
+        def raise_exception(url, data=None, headers=None, timeout=None):
             exception_raised.set()
             raise requests.exceptions.ConnectionError("Network error")
         
@@ -566,7 +566,7 @@ class SummaryForwardingErrorHandlingTests(unittest.TestCase):
         def capture_error(msg):
             logged_errors.append(msg)
         
-        def raise_exception(url, data=None, headers=None):
+        def raise_exception(url, data=None, headers=None, timeout=None):
             raise requests.exceptions.ConnectionError("Network error")
         
         with create_module_patch(pcs_module.requests, "post", recursive=True) as mock_post:
@@ -603,7 +603,7 @@ class SummaryForwardingErrorHandlingTests(unittest.TestCase):
         
         call_count = [0]
         
-        def count_calls(url, data=None, headers=None):
+        def count_calls(url, data=None, headers=None, timeout=None):
             call_count[0] += 1
             if call_count[0] <= 2:
                 raise requests.exceptions.ConnectionError("Network error")
@@ -634,7 +634,7 @@ class SummaryForwardingErrorHandlingTests(unittest.TestCase):
             forwarding_headers=None
         )
         
-        def raise_exception(url, data=None, headers=None):
+        def raise_exception(url, data=None, headers=None, timeout=None):
             raise requests.exceptions.ConnectionError("Network error")
         
         with create_module_patch(pcs_module.requests, "post", recursive=True) as mock_post:
