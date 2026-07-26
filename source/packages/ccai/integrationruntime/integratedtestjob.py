@@ -16,11 +16,11 @@
     * ``_create_recorder`` -> :class:`ccai.testbase.results.recorders.jsonresultrecorder.JsonResultRecorder`
       — JSOS streaming + the rendered HTML summary, in place of the stdout recorder.
 
-    It is *intended* to sit between ``TestJob`` and the landscape-aware ``InteropLibraryTestJob`` —
-    target chain ``TestJob -> IntegratedTestJob -> InteropLibraryTestJob -> DistributedTestJob``. As
-    built today, ``IntegratedTestJob`` and ``InteropLibraryTestJob`` both extend ``TestJob`` directly
-    (siblings); the re-parent of ``InteropLibraryTestJob`` onto ``IntegratedTestJob`` is pending
-    (Phase 5).
+    It sits between ``TestJob`` and the landscape-aware ``LandscapeTestJob`` in the job
+    chain ``TestJob -> IntegratedTestJob -> LandscapeTestJob -> DistributedTestJob``.
+    The landscape-activation lifecycle lives in ``ccai.landscaping.testing.testjob`` —
+    the package that owns the landscape model — so this tier and everything below it
+    stays landscape-free.
 
     NOTE: ``IntegratedTestJob`` assumes the process has already been activated as a test-run job
     (``this-app`` activation sets ``AM_JOB_TYPE`` / ``AM_PRESENCE_DIR`` / ``AM_RESULT_PATH_FOR_TESTS``)
