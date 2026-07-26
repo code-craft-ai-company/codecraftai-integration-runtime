@@ -67,7 +67,7 @@ def initialize_integration_runtime(name: str = "ccai", logger_name: str = "TB",
     """
     home_dir = os.path.join(os.path.expanduser("~"), name)
 
-    establish_app_persona(name=name, home_dir=home_dir, logger_name=logger_name, log_basename=log_basename)
+    establish_app_persona(name=name, presence_dir=home_dir, logger_name=logger_name, log_basename=log_basename)
 
     resolve_runtime_variables()
 
