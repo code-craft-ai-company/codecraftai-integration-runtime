@@ -21,11 +21,11 @@ packages = [{include="ccai", from="source/packages"}]
 python = ">=3.10,<4.0"
 requests = "^2.32.4"
 websocket-client = { version = "^1.8.0", optional = true }
-codecraftai-errors = { git = "https://github.com/automationmojo/codecraftai-errors.git", branch = "main" }
-codecraftai-xmodules = { git = "https://github.com/automationmojo/codecraftai-xmodules.git", branch = "main" }
-codecraftai-extension = { git = "https://github.com/automationmojo/codecraftai-extension.git", branch = "main" }
-codecraftai-this-app = { git = "https://github.com/automationmojo/codecraftai-this-app.git", branch = "main" }
-codecraftai-testbase = { git = "https://github.com/automationmojo/codecraftai-testbase.git", branch = "main" }
+codecraftai-errors = { git = "https://github.com/code-craft-ai-company/codecraftai-errors.git", branch = "main" }
+codecraftai-xmodules = { git = "https://github.com/code-craft-ai-company/codecraftai-xmodules.git", branch = "main" }
+codecraftai-extension = { git = "https://github.com/code-craft-ai-company/codecraftai-extension.git", branch = "main" }
+codecraftai-this-app = { git = "https://github.com/code-craft-ai-company/codecraftai-this-app.git", branch = "main" }
+codecraftai-testbase = { git = "https://github.com/code-craft-ai-company/codecraftai-testbase.git", branch = "main" }
 
 [tool.poetry.extras]
 websocket = ["websocket-client"]
