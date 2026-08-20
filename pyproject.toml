@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "codecraftai-integration-runtime"
 description = "Code Craft AI - Integration Runtime"
-version = "0.0.1"
+version = "1.0.0"
 authors = [
     "Myron Walker <myron.walker@gmail.com>"
 ]
@@ -21,16 +21,22 @@ packages = [{include="ccai", from="source/packages"}]
 python = ">=3.10,<4.0"
 requests = "^2.32.4"
 websocket-client = { version = "^1.8.0", optional = true }
-codecraftai-errors = { git = "https://github.com/code-craft-ai-company/codecraftai-errors.git", branch = "main" }
-codecraftai-xmodules = { git = "https://github.com/code-craft-ai-company/codecraftai-xmodules.git", branch = "main" }
-codecraftai-extension = { git = "https://github.com/code-craft-ai-company/codecraftai-extension.git", branch = "main" }
-codecraftai-this-app = { git = "https://github.com/code-craft-ai-company/codecraftai-this-app.git", branch = "main" }
-codecraftai-testbase = { git = "https://github.com/code-craft-ai-company/codecraftai-testbase.git", branch = "main" }
+codecraftai-errors = { version = "<2.0.0", source = "codecraftai" }
+codecraftai-xmodules = { version = "<2.0.0", source = "codecraftai" }
+codecraftai-extension = { version = "<2.0.0", source = "codecraftai" }
+codecraftai-this-app = { version = "<2.0.0", source = "codecraftai" }
+codecraftai-testbase = { version = "<2.0.0", source = "codecraftai" }
 
 [tool.poetry.extras]
 websocket = ["websocket-client"]
 
 [tool.poetry.group.dev.dependencies]
+
+
+[[tool.poetry.source]]
+name = "codecraftai"
+url = "https://code-craft.ai/licensed-repository/simple/"
+priority = "supplemental"
 
 [build-system]
 requires = ["poetry-core"]
