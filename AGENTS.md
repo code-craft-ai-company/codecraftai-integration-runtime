@@ -67,7 +67,7 @@ retired and currently holds thin re-export shims. The integration test-job machi
 migrated here from `codecraftai-testbase`.
 
 It depends on `codecraftai-testbase`, `codecraftai-this-app`, `codecraftai-extension`,
-`codecraftai-errors`, and the `ccai.xmodules` support libraries.
+`codecraftai-foundations`, and the `ccai.xmodules` support libraries.
 
 # Current State
 
