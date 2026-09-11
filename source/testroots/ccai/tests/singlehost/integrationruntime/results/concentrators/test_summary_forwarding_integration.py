@@ -30,6 +30,14 @@ from ccai.integrationruntime.results.concentrators.progressconcentratorservice i
     ProgressConcentratorServer
 )
 
+from ccai.waiting import wait_for_it
+
+# Bounded-wait parameters used when polling for work done by the concentrator's background
+# threads. The timeout is generous so slow or coarse-clock runners (Windows and macOS CI)
+# never fail on scheduling latency, while the short polling interval keeps fast runners fast.
+WAIT_TIMEOUT = 5.0
+WAIT_INTERVAL = 0.02
+
 
 class MockExternalServiceHandler(BaseHTTPRequestHandler):
     """Handler for mock external monitoring service that receives forwarded summaries."""
@@ -83,8 +91,8 @@ class MockExternalService(ThreadingMixIn, HTTPServer):
             daemon=True
         )
         self._server_thread.start()
-        # Give the server time to start
-        time.sleep(0.05)
+        # No start-up pause is needed: the listening socket was bound and activated in the
+        # constructor, so connections are queued for serve_forever() from that point on.
 
     def stop(self):
         """Stop the mock service."""
@@ -314,6 +322,52 @@ def _send_progress_update(port: int, payload: dict) -> int:
         conn.close()
 
 
+def _received_summary_count(env: dict) -> int:
+    """
+        Return the number of summaries the mock external service has received so far.
+
+        :param env: The mapping of fixture objects returned by ``_establish_env``.
+
+        :returns: The count of forwarded summaries received.
+    """
+    rtnval = len(env["external_service"].get_received_summaries())
+    return rtnval
+
+
+def _wait_for_summaries(env: dict, minimum: int = 1) -> None:
+    """
+        Wait, with a bounded timeout, until the mock external service has received at least
+        ``minimum`` forwarded summaries.
+
+        :param env: The mapping of fixture objects returned by ``_establish_env``.
+        :param minimum: The minimum number of summaries that must have been received.
+    """
+    wait_for_it(lambda wctx: _received_summary_count(env) >= minimum,
+                what_for=f"at least {minimum} forwarded summaries to be received",
+                interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+    return
+
+
+def _wait_for_fresh_summary(env: dict) -> None:
+    """
+        Wait, with a bounded timeout, until the mock external service has received a summary
+        whose snapshot was taken *after* this call was made.
+
+        The forwarder may already have snapshotted a summary (but not yet delivered it) at the
+        moment this function is called, so the next summary to arrive can be stale. The summary
+        after that is only snapshotted once the stale one has been delivered, so it necessarily
+        reflects every recorder update made before this call. Waiting for two more summaries
+        than are currently recorded therefore guarantees that the most recent summary is fresh.
+
+        :param env: The mapping of fixture objects returned by ``_establish_env``.
+    """
+    baseline = _received_summary_count(env)
+    wait_for_it(lambda wctx: _received_summary_count(env) >= baseline + 2,
+                what_for="a forwarded summary snapshotted after the latest progress update",
+                interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+    return
+
+
 def test_summary_forwarded_at_configured_interval() -> None:
     """
         Test that summaries are forwarded at the configured interval (Requirement 9.4).
@@ -330,7 +384,7 @@ def test_summary_forwarded_at_configured_interval() -> None:
         )
 
         # Wait for multiple forwarding cycles
-        time.sleep(forwarding_interval * 4 + 0.1)
+        _wait_for_summaries(env=env, minimum=3)
 
         received = env["external_service"].get_received_summaries()
 
@@ -367,13 +421,15 @@ def test_forwarding_continues_while_server_running() -> None:
         # Verify forwarding is running
         assert env["concentrator_server"]._forwarding_running
 
-        # Wait and collect summaries
-        time.sleep(0.35)
-        first_count = len(env["external_service"].get_received_summaries())
+        # Wait for the first summaries to arrive
+        _wait_for_summaries(env=env)
+        first_count = _received_summary_count(env)
 
-        # Wait more and verify more summaries arrive
-        time.sleep(0.35)
-        second_count = len(env["external_service"].get_received_summaries())
+        # Wait for further summaries and verify more arrive
+        wait_for_it(lambda wctx: _received_summary_count(env) > first_count,
+                    what_for="further forwarded summaries to arrive",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+        second_count = _received_summary_count(env)
 
         assert second_count > first_count, "Forwarding should continue sending summaries"
     finally:
@@ -405,8 +461,8 @@ def test_summary_contains_current_recorder_state() -> None:
             )
             _send_progress_update(port=concentrator_port, payload=payload)
 
-        # Wait for forwarding to occur
-        time.sleep(0.25)
+        # Wait for a summary snapshotted after the updates to be forwarded
+        _wait_for_fresh_summary(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -441,7 +497,7 @@ def test_summary_posted_to_external_service() -> None:
         )
 
         # Wait for at least one forwarding cycle
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
 
@@ -466,7 +522,7 @@ def test_summary_json_structure_is_valid() -> None:
         )
 
         # Wait for forwarding
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -497,7 +553,7 @@ def test_summary_includes_build_info() -> None:
             forwarding_interval=0.1
         )
 
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -528,7 +584,7 @@ def test_summary_includes_job_info() -> None:
             forwarding_interval=0.1
         )
 
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -572,8 +628,8 @@ def test_running_tasks_reflected_in_forwarded_summary() -> None:
             )
             _send_progress_update(port=concentrator_port, payload=payload)
 
-        # Wait for forwarding
-        time.sleep(0.25)
+        # Wait for a summary snapshotted after the updates to be forwarded
+        _wait_for_fresh_summary(env=env)
 
         received = env["external_service"].get_received_summaries()
 
@@ -617,8 +673,12 @@ def test_completed_tasks_removed_from_forwarded_summary() -> None:
         )
         _send_progress_update(port=concentrator_port, payload=payload)
 
-        # Wait for forwarding
-        time.sleep(0.15)
+        # Wait for a summary snapshotted after the running task was recorded and
+        # verify the task was forwarded while running
+        _wait_for_fresh_summary(env=env)
+
+        running = env["external_service"].get_received_summaries()[-1]['summary'].get('running', {})
+        assert task_id in running, "Running task should appear in forwarded summary before completion"
 
         # Complete the task
         payload = _create_progress_payload(
@@ -628,9 +688,9 @@ def test_completed_tasks_removed_from_forwarded_summary() -> None:
         )
         _send_progress_update(port=concentrator_port, payload=payload)
 
-        # Clear previous summaries and wait for new ones
-        env["external_service"].clear_received_summaries()
-        time.sleep(0.25)
+        # Wait for a summary snapshotted after the completion was recorded; only then is
+        # the absence of the task in the latest summary a meaningful check
+        _wait_for_fresh_summary(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -659,7 +719,7 @@ def test_content_type_header_propagated() -> None:
         )
 
         # Wait for forwarding
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -696,7 +756,7 @@ def test_custom_headers_propagated() -> None:
         )
 
         # Wait for forwarding
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -737,7 +797,7 @@ def test_custom_headers_merged_with_default_content_type() -> None:
         )
 
         # Wait for forwarding
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0
@@ -775,7 +835,7 @@ def test_headers_consistent_across_multiple_forwards() -> None:
         )
 
         # Wait for multiple forwarding cycles
-        time.sleep(0.45)
+        _wait_for_summaries(env=env, minimum=3)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) >= 3
@@ -808,7 +868,7 @@ def test_no_custom_headers_only_default_content_type() -> None:
         )
 
         # Wait for forwarding
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env["external_service"].get_received_summaries()
         assert len(received) > 0

@@ -9,7 +9,6 @@
 import tempfile
 import os
 import shutil
-import time
 
 from datetime import datetime
 from typing import Any, Dict
@@ -24,6 +23,14 @@ from ccai.testbase.results.recorders.jsonresultrecorder import JsonResultRecorde
 from ccai.integrationruntime.results.concentrators.progressconcentratorservice import (
     ProgressConcentratorServer
 )
+
+from ccai.waiting import wait_for_it
+
+# Bounded-wait parameters used when polling for work done by the concentrator's background
+# threads. The timeout is generous so slow or coarse-clock runners (Windows and macOS CI)
+# never fail on scheduling latency, while the short polling interval keeps fast runners fast.
+WAIT_TIMEOUT = 5.0
+WAIT_INTERVAL = 0.02
 
 from ccai.testbase.mocking import create_module_patch
 
@@ -334,7 +341,11 @@ def test_server_accepts_no_connections_after_shutdown() -> None:
         server.shutdown()
         server.server_close()
 
-        time.sleep(0.1)
+        # Wait for the server thread to exit before probing. The listening socket is
+        # closed synchronously by server_close(), so connections must be refused after that.
+        wait_for_it(lambda wctx: not server._server_thread.is_alive(),
+                    what_for="the server thread to exit after shutdown",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         raised = False
         try:

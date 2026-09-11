@@ -38,6 +38,14 @@ from ccai.integrationruntime.results.concentrators.progressconcentratorservice i
     ProgressConcentratorServer
 )
 
+from ccai.waiting import wait_for_it
+
+# Bounded-wait parameters used when polling for work done by the concentrator's background
+# threads. The timeout is generous so slow or coarse-clock runners (Windows and macOS CI)
+# never fail on scheduling latency, while the short polling interval keeps fast runners fast.
+WAIT_TIMEOUT = 5.0
+WAIT_INTERVAL = 0.02
+
 
 class MockExternalServiceHandler(BaseHTTPRequestHandler):
     """Handler for mock external monitoring service that receives forwarded summaries."""
@@ -90,7 +98,8 @@ class MockExternalService(ThreadingMixIn, HTTPServer):
             daemon=True
         )
         self._server_thread.start()
-        time.sleep(0.05)
+        # No start-up pause is needed: the listening socket was bound and activated in the
+        # constructor, so connections are queued for serve_forever() from that point on.
 
     def stop(self):
         """Stop the mock service."""
@@ -341,6 +350,78 @@ def _find_unused_port() -> int:
         return rtnval
 
 
+def _received_summary_count(env: ProgressForwardingTestEnv) -> int:
+    """
+        Return the number of summaries the mock external service has received so far.
+
+        :param env: The per-test environment holder.
+
+        :returns: The count of forwarded summaries received.
+    """
+    rtnval = len(env.external_service.get_received_summaries())
+    return rtnval
+
+
+def _wait_for_summaries(env: ProgressForwardingTestEnv, minimum: int = 1) -> None:
+    """
+        Wait, with a bounded timeout, until the mock external service has received at least
+        ``minimum`` forwarded summaries.
+
+        :param env: The per-test environment holder.
+        :param minimum: The minimum number of summaries that must have been received.
+    """
+    wait_for_it(lambda wctx: _received_summary_count(env) >= minimum,
+                what_for=f"at least {minimum} forwarded summaries to be received",
+                interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+    return
+
+
+def _wait_for_fresh_summary(env: ProgressForwardingTestEnv) -> None:
+    """
+        Wait, with a bounded timeout, until the mock external service has received a summary
+        whose snapshot was taken *after* this call was made.
+
+        The forwarder may already have snapshotted a summary (but not yet delivered it) at the
+        moment this function is called, so the next summary to arrive can be stale. The summary
+        after that is only snapshotted once the stale one has been delivered, so it necessarily
+        reflects every recorder update made before this call. Waiting for two more summaries
+        than are currently recorded therefore guarantees that the most recent summary is fresh.
+
+        :param env: The per-test environment holder.
+    """
+    baseline = _received_summary_count(env)
+    wait_for_it(lambda wctx: _received_summary_count(env) >= baseline + 2,
+                what_for="a forwarded summary snapshotted after the latest progress update",
+                interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+    return
+
+
+def _wait_for_failed_forwarding_attempts(env: ProgressForwardingTestEnv, minimum: int = 2) -> None:
+    """
+        Wait, with a bounded timeout, until the running concentrator has logged at least
+        ``minimum`` connection-error warnings from its forwarding thread, counted from the
+        moment this function is called.
+
+        :param env: The per-test environment holder whose concentrator server is running.
+        :param minimum: The minimum number of failed forwarding attempts to wait for.
+    """
+    failed_attempts = []
+    original_warning = env.concentrator_server._logger.warning
+
+    def count_failure(msg):
+        failed_attempts.append(msg)
+        original_warning(msg)
+
+    env.concentrator_server._logger.warning = count_failure
+    try:
+        wait_for_it(lambda wctx: len(failed_attempts) >= minimum,
+                    what_for=f"at least {minimum} failed forwarding attempts",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+    finally:
+        env.concentrator_server._logger.warning = original_warning
+    return
+
+
 def test_remote_worker_progress_received_and_forwarded() -> None:
     """
         Test that progress from remote workers is received and forwarded to external service.
@@ -375,8 +456,8 @@ def test_remote_worker_progress_received_and_forwarded() -> None:
         status_code = _send_progress_update(port=concentrator_port, payload=payload)
         assert status_code == 200, "Progress update should be accepted"
 
-        # Wait for forwarding to occur
-        time.sleep(0.25)
+        # Wait for a summary snapshotted after the update to be forwarded
+        _wait_for_fresh_summary(env=env)
 
         # Verify progress was forwarded to external service
         received = env.external_service.get_received_summaries()
@@ -432,8 +513,8 @@ def test_multiple_remote_workers_progress_aggregated() -> None:
             status_code = _send_progress_update(port=concentrator_port, payload=payload)
             assert status_code == 200
 
-        # Wait for forwarding
-        time.sleep(0.25)
+        # Wait for a summary snapshotted after the updates to be forwarded
+        _wait_for_fresh_summary(env=env)
 
         # Verify all workers' progress is in forwarded summary
         received = env.external_service.get_received_summaries()
@@ -511,7 +592,7 @@ def test_concurrent_remote_workers_progress_reception() -> None:
             assert status_code == 200, f"Task {task_id} should succeed"
 
         # Wait for forwarding
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         # Verify external service received summaries
         received = env.external_service.get_received_summaries()
@@ -588,7 +669,7 @@ def test_forwarding_uses_configured_interval() -> None:
         )
 
         # Wait for multiple forwarding cycles
-        time.sleep(forwarding_interval * 5 + 0.1)
+        _wait_for_summaries(env=env, minimum=4)
 
         received = env.external_service.get_received_summaries()
 
@@ -628,11 +709,12 @@ def test_different_forwarding_intervals() -> None:
             forwarding_interval=short_interval
         )
 
-        time.sleep(0.4)
+        # Wait for multiple forwarding cycles
+        _wait_for_summaries(env=env, minimum=4)
 
         received = env.external_service.get_received_summaries()
 
-        # With 0.08s interval over 0.4s, should have at least 4 summaries
+        # With a 0.08s interval, at least 4 summaries arrive well within the wait timeout
         assert len(received) >= 4, \
             f"Expected at least 4 summaries with short interval, got {len(received)}"
     finally:
@@ -664,7 +746,7 @@ def test_forwarding_includes_custom_headers() -> None:
             forwarding_headers=custom_headers
         )
 
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env.external_service.get_received_summaries()
         assert len(received) > 0
@@ -697,7 +779,7 @@ def test_forwarding_includes_content_type_header() -> None:
             forwarding_headers=None
         )
 
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env.external_service.get_received_summaries()
         assert len(received) > 0
@@ -736,7 +818,7 @@ def test_forwarding_continues_after_network_error() -> None:
         env.concentrator_server.start()
 
         # Wait for multiple failed forwarding attempts
-        time.sleep(0.25)
+        _wait_for_failed_forwarding_attempts(env=env)
 
         # Verify forwarding thread is still running
         assert env.concentrator_server._forwarding_running, \
@@ -783,8 +865,10 @@ def test_forwarding_logs_errors() -> None:
         try:
             env.concentrator_server.start()
 
-            # Wait for forwarding attempts
-            time.sleep(0.2)
+            # Wait for a forwarding attempt to fail and be logged
+            wait_for_it(lambda wctx: len(logged_errors) > 0,
+                        what_for="a forwarding error to be logged",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             # Verify errors were logged
             assert len(logged_errors) > 0, \
@@ -867,7 +951,8 @@ def test_complete_progress_lifecycle_forwarded() -> None:
         )
         _send_progress_update(port=concentrator_port, payload=start_payload)
 
-        time.sleep(0.15)
+        # Wait for a summary snapshotted after the start update was recorded
+        _wait_for_fresh_summary(env=env)
 
         # Verify task appears in forwarded summary
         received = env.external_service.get_received_summaries()
@@ -888,7 +973,14 @@ def test_complete_progress_lifecycle_forwarded() -> None:
         )
         _send_progress_update(port=concentrator_port, payload=update_payload)
 
-        time.sleep(0.15)
+        # Wait for a summary snapshotted after the position update was recorded and
+        # verify the update was forwarded
+        _wait_for_fresh_summary(env=env)
+
+        received = env.external_service.get_received_summaries()
+        running = received[-1]['summary'].get('running', {})
+        assert task_id in running and running[task_id]['position'] == "5", \
+            "Updated task position should appear in forwarded summary"
 
         # Complete task
         complete_payload = _create_progress_payload(
@@ -899,9 +991,9 @@ def test_complete_progress_lifecycle_forwarded() -> None:
         )
         _send_progress_update(port=concentrator_port, payload=complete_payload)
 
-        # Clear and wait for new summaries
-        env.external_service.clear_received_summaries()
-        time.sleep(0.25)
+        # Wait for a summary snapshotted after the completion was recorded; only then is
+        # the absence of the task in the latest summary a meaningful check
+        _wait_for_fresh_summary(env=env)
 
         # Verify completed task is removed from forwarded summary
         received = env.external_service.get_received_summaries()
@@ -944,8 +1036,8 @@ def test_high_volume_progress_forwarding() -> None:
             status_code = _send_progress_update(port=concentrator_port, payload=payload)
             assert status_code == 200
 
-        # Wait for forwarding
-        time.sleep(0.3)
+        # Wait for a summary snapshotted after every update was recorded
+        _wait_for_fresh_summary(env=env)
 
         # Verify external service received summaries
         received = env.external_service.get_received_summaries()
@@ -978,7 +1070,7 @@ def test_summary_metadata_forwarded_correctly() -> None:
             forwarding_interval=0.1
         )
 
-        time.sleep(0.25)
+        _wait_for_summaries(env=env)
 
         received = env.external_service.get_received_summaries()
         assert len(received) > 0

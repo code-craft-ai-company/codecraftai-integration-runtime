@@ -38,6 +38,14 @@ from ccai.integrationruntime.results.concentrators.progressconcentratorservice i
     ProgressConcentratorServer
 )
 
+from ccai.waiting import wait_for_it
+
+# Bounded-wait parameters used when polling for work done by the concentrator's background
+# threads. The timeout is generous so slow or coarse-clock runners (Windows and macOS CI)
+# never fail on scheduling latency, while the short polling interval keeps fast runners fast.
+WAIT_TIMEOUT = 5.0
+WAIT_INTERVAL = 0.02
+
 
 class ErrorRecoveryContext:
     """
@@ -250,11 +258,40 @@ def _find_unused_port() -> int:
         return rtnval
 
 
+def _wait_for_failed_forwarding_attempts(context: ErrorRecoveryContext, minimum: int = 2) -> None:
+    """
+        Wait, with a bounded timeout, until the running concentrator has logged at least
+        ``minimum`` connection-error warnings from its forwarding thread, counted from the
+        moment this function is called.
+
+        :param context: The fixture context whose concentrator server is running.
+        :param minimum: The minimum number of failed forwarding attempts to wait for.
+    """
+    failed_attempts = []
+    original_warning = context.server._logger.warning
+
+    def count_failure(msg):
+        failed_attempts.append(msg)
+        original_warning(msg)
+
+    context.server._logger.warning = count_failure
+    try:
+        wait_for_it(lambda wctx: len(failed_attempts) >= minimum,
+                    what_for=f"at least {minimum} failed forwarding attempts",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
+    finally:
+        context.server._logger.warning = original_warning
+    return
+
+
 class UnreachableForwardingServiceHandler(BaseHTTPRequestHandler):
     """Handler that simulates various network failure scenarios."""
 
     def do_POST(self):
         """Simulate different failure modes based on path."""
+        with self.server.lock:
+            self.server.request_count += 1
+
         if self.path == "/timeout":
             # Simulate timeout by sleeping
             time.sleep(10)
@@ -291,11 +328,18 @@ class FailingExternalService(ThreadingMixIn, HTTPServer):
             daemon=True
         )
         self._server_thread.start()
-        time.sleep(0.05)
+        # No start-up pause is needed: the listening socket was bound and activated in the
+        # constructor, so connections are queued for serve_forever() from that point on.
 
     def stop(self):
         self.shutdown()
         self.server_close()
+
+    def get_request_count(self) -> int:
+        """Get the number of requests received so far in a thread-safe manner."""
+        with self.lock:
+            rtnval = self.request_count
+        return rtnval
 
 
 def test_invalid_json_syntax_returns_500() -> None:
@@ -554,8 +598,8 @@ def test_forwarding_continues_after_connection_refused() -> None:
 
         _start_server(context=context, forwarding_info=forwarding_info)
 
-        # Wait for multiple forwarding attempts
-        time.sleep(0.25)
+        # Wait for multiple failed forwarding attempts
+        _wait_for_failed_forwarding_attempts(context=context)
 
         # Verify forwarding thread is still running
         assert context.server._forwarding_running
@@ -582,8 +626,10 @@ def test_forwarding_continues_after_http_500_error() -> None:
 
         _start_server(context=context, forwarding_info=forwarding_info)
 
-        # Wait for multiple forwarding attempts
-        time.sleep(0.25)
+        # Wait for multiple forwarding attempts to reach the failing service
+        wait_for_it(lambda wctx: context.external_service.get_request_count() >= 2,
+                    what_for="multiple forwarding attempts to reach the failing service",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Verify forwarding thread is still running
         assert context.server._forwarding_running
@@ -618,8 +664,10 @@ def test_forwarding_logs_errors() -> None:
         context.server._logger.warning = capture_warning
 
         try:
-            # Wait for forwarding attempts
-            time.sleep(0.2)
+            # Wait for a forwarding attempt to fail and be logged
+            wait_for_it(lambda wctx: len(logged_errors) > 0,
+                        what_for="a forwarding error to be logged",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             # Verify errors were logged
             assert len(logged_errors) > 0, "Forwarding errors should be logged"
@@ -675,7 +723,7 @@ def test_forwarding_recovers_when_service_becomes_available() -> None:
         _start_server(context=context, forwarding_info=forwarding_info)
 
         # Wait for some failed attempts
-        time.sleep(0.15)
+        _wait_for_failed_forwarding_attempts(context=context)
 
         # Verify forwarding is still running despite failures
         assert context.server._forward_thread.is_alive()

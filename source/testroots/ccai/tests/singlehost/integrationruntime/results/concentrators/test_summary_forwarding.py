@@ -27,6 +27,14 @@ from ccai.integrationruntime.results.concentrators.progressconcentratorservice i
     ProgressConcentratorServer
 )
 
+from ccai.waiting import wait_for_it
+
+# Bounded-wait parameters used when polling for work done by the concentrator's background
+# threads. The timeout is generous so slow or coarse-clock runners (Windows and macOS CI)
+# never fail on scheduling latency, while the short polling interval keeps fast runners fast.
+WAIT_TIMEOUT = 5.0
+WAIT_INTERVAL = 0.02
+
 from ccai.testbase.mocking import Mock, create_module_patch
 
 import ccai.integrationruntime.results.concentrators.progressconcentratorservice as pcs_module
@@ -201,7 +209,9 @@ def test_forwarding_retrieves_summary_from_recorder() -> None:
 
             server.start()
 
-            time.sleep(0.15)
+            wait_for_it(lambda wctx: len(posted_summaries) > 0,
+                        what_for="a summary to be posted",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert len(posted_summaries) > 0
 
@@ -246,7 +256,9 @@ def test_forwarding_posts_to_forwarding_url() -> None:
 
             server.start()
 
-            time.sleep(0.15)
+            wait_for_it(lambda wctx: len(posted_urls) > 0,
+                        what_for="a summary to be posted",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert len(posted_urls) > 0
             assert posted_urls[0] == expected_url
@@ -287,7 +299,9 @@ def test_forwarding_sleeps_for_interval() -> None:
 
             server.start()
 
-            time.sleep(0.35)
+            wait_for_it(lambda wctx: len(post_times) >= 2,
+                        what_for="two consecutive summary posts",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert len(post_times) >= 2
 
@@ -331,7 +345,9 @@ def test_forwarding_includes_content_type_json_header() -> None:
 
             server.start()
 
-            time.sleep(0.15)
+            wait_for_it(lambda wctx: len(captured_headers) > 0,
+                        what_for="a summary to be posted",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert len(captured_headers) > 0
 
@@ -380,7 +396,9 @@ def test_forwarding_merges_custom_headers() -> None:
 
             server.start()
 
-            time.sleep(0.15)
+            wait_for_it(lambda wctx: len(captured_headers) > 0,
+                        what_for="a summary to be posted",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert len(captured_headers) > 0
 
@@ -428,7 +446,9 @@ def test_forwarding_uses_only_default_header_when_forwarding_headers_is_none() -
 
             server.start()
 
-            time.sleep(0.15)
+            wait_for_it(lambda wctx: len(captured_headers) > 0,
+                        what_for="a summary to be posted",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert len(captured_headers) > 0
 
@@ -470,7 +490,7 @@ def test_forwarding_catches_exceptions() -> None:
 
             server.start()
 
-            exception_raised.wait(timeout=0.5)
+            exception_raised.wait(timeout=WAIT_TIMEOUT)
 
             assert exception_raised.is_set()
             assert server._forward_thread.is_alive()
@@ -515,7 +535,9 @@ def test_forwarding_logs_errors() -> None:
             try:
                 server.start()
 
-                time.sleep(0.15)
+                wait_for_it(lambda wctx: len(logged_errors) > 0,
+                            what_for="a forwarding error to be logged",
+                            interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
                 assert len(logged_errors) > 0
 
@@ -560,7 +582,9 @@ def test_forwarding_continues_after_exception() -> None:
 
             server.start()
 
-            time.sleep(0.3)
+            wait_for_it(lambda wctx: call_count[0] > 2,
+                        what_for="forwarding to continue past the failed attempts",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert call_count[0] > 2
     finally:
@@ -580,7 +604,10 @@ def test_forwarding_thread_does_not_terminate_on_network_error() -> None:
             forwarding_headers=None
         )
 
+        attempt_count = [0]
+
         def raise_exception(url, data=None, headers=None, timeout=None):
+            attempt_count[0] += 1
             raise requests.exceptions.ConnectionError("Network error")
 
         with create_module_patch(pcs_module.requests, "post", recursive=True) as mock_post:
@@ -595,7 +622,9 @@ def test_forwarding_thread_does_not_terminate_on_network_error() -> None:
 
             server.start()
 
-            time.sleep(0.2)
+            wait_for_it(lambda wctx: attempt_count[0] >= 2,
+                        what_for="multiple failed forwarding attempts",
+                        interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
             assert server._forward_thread.is_alive()
             assert server._forwarding_running

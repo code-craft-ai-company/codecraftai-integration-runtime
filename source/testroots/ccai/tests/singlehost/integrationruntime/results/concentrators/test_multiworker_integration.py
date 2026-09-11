@@ -31,6 +31,14 @@ from ccai.integrationruntime.results.concentrators.progressconcentratorservice i
     ProgressConcentratorServer
 )
 
+from ccai.waiting import wait_for_it
+
+# Bounded-wait parameters used when polling for work done by the concentrator's background
+# threads. The timeout is generous so slow or coarse-clock runners (Windows and macOS CI)
+# never fail on scheduling latency, while the short polling interval keeps fast runners fast.
+WAIT_TIMEOUT = 5.0
+WAIT_INTERVAL = 0.02
+
 
 class MultiWorkerEnv:
     """
@@ -347,8 +355,10 @@ def test_all_worker_updates_aggregated_in_recorder() -> None:
                 status_code = _send_progress_update(env=env, payload=payload)
                 assert status_code == 200
 
-        # Allow time for all updates to be processed
-        time.sleep(0.1)
+        # Wait for all updates to be reflected in the recorder
+        wait_for_it(lambda wctx: set(env.recorder._running_tasks.keys()) == expected_tasks,
+                    what_for="all worker tasks to be aggregated in the recorder",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Verify all tasks are in running_tasks
         actual_tasks = set(env.recorder._running_tasks.keys())
@@ -382,8 +392,10 @@ def test_progress_position_updates_are_accurate() -> None:
             status_code = _send_progress_update(env=env, payload=payload)
             assert status_code == 200
 
-        # Allow time for processing
-        time.sleep(0.1)
+        # Wait for the final position to be reflected in the recorder
+        wait_for_it(lambda wctx: env.recorder._running_tasks.get(task_id, {}).get("position") == "10",
+                    what_for="the final task position to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Verify final position is recorded
         assert task_id in env.recorder._running_tasks
@@ -411,9 +423,12 @@ def test_completed_tasks_removed_from_running_tasks() -> None:
             worker_id=worker_id,
             status="Running"
         )
-        _send_progress_update(env=env, payload=running_payload)
+        status_code = _send_progress_update(env=env, payload=running_payload)
+        assert status_code == 200
 
-        time.sleep(0.05)
+        wait_for_it(lambda wctx: task_id in env.recorder._running_tasks,
+                    what_for="the running task to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
         assert task_id in env.recorder._running_tasks
 
         # Complete the task
@@ -422,9 +437,12 @@ def test_completed_tasks_removed_from_running_tasks() -> None:
             worker_id=worker_id,
             status="Completed"
         )
-        _send_progress_update(env=env, payload=completed_payload)
+        # The recorder is updated before the concentrator responds, so once the completion
+        # has been acknowledged the task must already be gone; no settle time is required
+        # for this negative check.
+        status_code = _send_progress_update(env=env, payload=completed_payload)
+        assert status_code == 200
 
-        time.sleep(0.05)
         assert task_id not in env.recorder._running_tasks
     finally:
         _cleanup_env(env=env)
@@ -450,7 +468,9 @@ def test_worker_data_preserved_in_aggregation() -> None:
         )
         _send_progress_update(env=env, payload=payload)
 
-        time.sleep(0.05)
+        wait_for_it(lambda wctx: task_id in env.recorder._running_tasks,
+                    what_for="the task to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Verify worker data is preserved
         assert task_id in env.recorder._running_tasks
@@ -534,7 +554,9 @@ def test_summary_property_returns_thread_safe_copy() -> None:
             )
             _send_progress_update(env=env, payload=payload)
 
-        time.sleep(0.1)
+        wait_for_it(lambda wctx: all(f"summary-task-{i}" in env.recorder._running_tasks for i in range(5)),
+                    what_for="all summary tasks to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Get summary
         summary1 = env.recorder.summary
@@ -696,7 +718,10 @@ def test_mixed_start_update_complete_operations() -> None:
             )
             _send_progress_update(env=env, payload=payload)
 
-        time.sleep(0.05)
+        # Wait for all tasks to be recorded
+        wait_for_it(lambda wctx: all(f"mixed-task-{i}" in env.recorder._running_tasks for i in range(num_tasks)),
+                    what_for="all mixed tasks to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Verify all tasks are running
         for i in range(num_tasks):
@@ -712,7 +737,11 @@ def test_mixed_start_update_complete_operations() -> None:
             )
             _send_progress_update(env=env, payload=payload)
 
-        time.sleep(0.05)
+        # Wait for the position updates to be recorded
+        wait_for_it(lambda wctx: all(env.recorder._running_tasks.get(f"mixed-task-{i}", {}).get("position") == "5"
+                                    for i in range(0, num_tasks, 2)),
+                    what_for="the position updates to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Complete some tasks
         completed_tasks = [0, 2, 4]
@@ -722,9 +751,11 @@ def test_mixed_start_update_complete_operations() -> None:
                 worker_id=f"worker-{i % 3}",
                 status="Completed"
             )
-            _send_progress_update(env=env, payload=payload)
+            status_code = _send_progress_update(env=env, payload=payload)
+            assert status_code == 200
 
-        time.sleep(0.05)
+        # Every completion was acknowledged, and the recorder is updated before the
+        # concentrator responds, so no settle time is required for the negative check.
 
         # Verify completed tasks are removed
         for i in completed_tasks:
@@ -759,7 +790,10 @@ def test_concurrent_completions_from_multiple_workers() -> None:
             )
             _send_progress_update(env=env, payload=payload)
 
-        time.sleep(0.1)
+        # Wait for all tasks to be recorded
+        wait_for_it(lambda wctx: len(env.recorder._running_tasks) == num_tasks,
+                    what_for="all tasks to be recorded",
+                    interval=WAIT_INTERVAL, timeout=WAIT_TIMEOUT)
 
         # Verify all tasks are running
         assert len(env.recorder._running_tasks) == num_tasks
@@ -781,7 +815,8 @@ def test_concurrent_completions_from_multiple_workers() -> None:
         for status_code in results:
             assert status_code == 200
 
-        time.sleep(0.1)
+        # Every completion was acknowledged, and the recorder is updated before the
+        # concentrator responds, so no settle time is required for the negative check.
 
         # Verify all tasks are removed
         assert len(env.recorder._running_tasks) == 0
