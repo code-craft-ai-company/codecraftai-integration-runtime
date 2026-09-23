@@ -16,7 +16,6 @@ __credits__ = []
 
 import os
 import tempfile
-import time
 import uuid
 
 from datetime import datetime
@@ -140,6 +139,9 @@ def debug_configure_basic_forwarding():
     print("\nNote: Server not started because forwarding URL is not real.")
     print("In a real application, call server.start() to begin forwarding.")
 
+    # Release the listening socket that was bound by 'bind_and_activate=True'
+    server.server_close()
+
     return
 
 
@@ -207,6 +209,9 @@ def debug_configure_forwarding_with_auth():
 
     print("\nNote: Server not started because forwarding URL is not real.")
 
+    # Release the listening socket that was bound by 'bind_and_activate=True'
+    server.server_close()
+
     return
 
 
@@ -263,6 +268,9 @@ def debug_configure_high_frequency_forwarding():
 
     print("\nNote: High-frequency forwarding increases network traffic.")
     print("Consider the trade-off between responsiveness and resource usage.")
+
+    # Release the listening socket that was bound by 'bind_and_activate=True'
+    server.server_close()
 
     return
 

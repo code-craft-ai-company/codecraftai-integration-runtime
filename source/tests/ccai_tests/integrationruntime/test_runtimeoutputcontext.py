@@ -12,7 +12,7 @@
 
 import unittest
 
-from unittest import mock
+import unittest.mock
 
 from ccai.errors.exceptions import SemanticError
 
@@ -23,21 +23,21 @@ from ccai.integrationruntime.runtimeoutputcontext import RuntimeOutputContext
 class RuntimeOutputContextDelegationTests(unittest.TestCase):
 
     def test_get_test_results_dir_delegates_to_path_helper(self):
-        with mock.patch.object(roc, "get_path_for_testresults", return_value="/presence/results/testresults") as mocked:
+        with unittest.mock.patch.object(roc, "get_path_for_testresults", return_value="/presence/results/testresults") as mocked:
             context = RuntimeOutputContext()
             found = context.get_test_results_dir()
             self.assertEqual(found, "/presence/results/testresults")
             mocked.assert_called_once()
 
     def test_get_testcase_byproducts_dir_passes_test_id(self):
-        with mock.patch.object(roc, "get_path_for_testcase_by_products", return_value="/presence/byproducts/scope1") as mocked:
+        with unittest.mock.patch.object(roc, "get_path_for_testcase_by_products", return_value="/presence/byproducts/scope1") as mocked:
             context = RuntimeOutputContext()
             found = context.get_testcase_byproducts_dir("scope1")
             self.assertEqual(found, "/presence/byproducts/scope1")
             mocked.assert_called_once_with("scope1")
 
     def test_get_diagnostics_dir_passes_label(self):
-        with mock.patch.object(roc, "get_path_for_diagnostics", return_value="/presence/diagnostics/prerun") as mocked:
+        with unittest.mock.patch.object(roc, "get_path_for_diagnostics", return_value="/presence/diagnostics/prerun") as mocked:
             context = RuntimeOutputContext()
             found = context.get_diagnostics_dir("prerun")
             self.assertEqual(found, "/presence/diagnostics/prerun")
@@ -51,7 +51,7 @@ class RuntimeOutputContextActivationGatingTests(unittest.TestCase):
         # (the process has not been activated as a test-run job). RuntimeOutputContext must let
         # that SemanticError bubble -- it must never be swallowed.
         gating_error = SemanticError("AM_JOB_TYPE is Unknown -- the process is not activated as a test-run job.")
-        with mock.patch.object(roc, "get_path_for_testresults", side_effect=gating_error):
+        with unittest.mock.patch.object(roc, "get_path_for_testresults", side_effect=gating_error):
             context = RuntimeOutputContext()
             raised = False
             try:

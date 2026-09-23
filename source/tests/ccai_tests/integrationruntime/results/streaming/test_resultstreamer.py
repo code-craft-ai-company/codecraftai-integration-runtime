@@ -13,9 +13,6 @@ import unittest
 import threading
 import time
 import json
-import tempfile
-import os
-import shutil
 
 from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -27,11 +24,10 @@ from ccai.testbase.results.model.streaminginfo import (
     StreamingCallback
 )
 from ccai.integrationruntime.results.streaming.resultstreamer import (
-    ResultStreamer,
     RestResultStreamer,
     WebSocketResultStreamer,
     create_result_streamer,
-    StreamingJsonEncoder
+    StreamingJsonEncoder,
 )
 
 
@@ -186,12 +182,14 @@ class RestResultStreamerTests(unittest.TestCase):
             try:
                 self.streamer.stop()
             except Exception:
+                # Best-effort teardown; a streamer that is already stopped must not block the remaining cleanup.
                 pass
         
         if self.mock_service is not None:
             try:
                 self.mock_service.stop()
             except Exception:
+                # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
                 pass
 
     def test_streamer_starts_and_stops(self):
@@ -369,12 +367,14 @@ class StreamingCallbackTests(unittest.TestCase):
             try:
                 self.streamer.stop()
             except Exception:
+                # Best-effort teardown; a streamer that is already stopped must not block the remaining cleanup.
                 pass
         
         if self.mock_service is not None:
             try:
                 self.mock_service.stop()
             except Exception:
+                # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
                 pass
 
     def test_callback_invoked_for_results(self):

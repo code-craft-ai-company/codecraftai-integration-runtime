@@ -181,12 +181,14 @@ class StreamingResultRecorderTestBase(unittest.TestCase):
                 if hasattr(self.recorder, '_streamer') and self.recorder._streamer is not None:
                     self.recorder._streamer.stop()
             except Exception:
+                # Best-effort teardown; a streamer that is already stopped must not block the remaining cleanup.
                 pass
         
         if self.mock_service is not None:
             try:
                 self.mock_service.stop()
             except Exception:
+                # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
                 pass
         
         if os.path.exists(self.temp_dir):

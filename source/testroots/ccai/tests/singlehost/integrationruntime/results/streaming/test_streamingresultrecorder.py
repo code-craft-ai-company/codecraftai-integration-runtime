@@ -218,12 +218,14 @@ def _teardown_env(env: StreamingTestEnv) -> None:
             if hasattr(env.recorder, '_streamer') and env.recorder._streamer is not None:
                 env.recorder._streamer.stop()
         except Exception:
+            # Best-effort teardown; a streamer that is already stopped must not block the remaining cleanup.
             pass
 
     if env.mock_service is not None:
         try:
             env.mock_service.stop()
         except Exception:
+            # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
             pass
 
     if env.temp_dir is not None and os.path.exists(env.temp_dir):

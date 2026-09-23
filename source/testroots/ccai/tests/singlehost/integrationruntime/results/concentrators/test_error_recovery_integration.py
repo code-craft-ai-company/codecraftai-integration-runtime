@@ -159,6 +159,7 @@ def _cleanup_env(context: ErrorRecoveryContext) -> None:
         try:
             context.external_service.stop()
         except Exception:
+            # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
             pass
 
     if context.server is not None:
@@ -170,8 +171,10 @@ def _cleanup_env(context: ErrorRecoveryContext) -> None:
                 try:
                     context.server._forward_thread.join(timeout=2.0)
                 except Exception:
+                    # Best-effort teardown; the forwarding thread is a daemon, so a failed join must not block the remaining cleanup.
                     pass
         except Exception:
+            # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
             pass
 
     if os.path.exists(context.temp_dir):

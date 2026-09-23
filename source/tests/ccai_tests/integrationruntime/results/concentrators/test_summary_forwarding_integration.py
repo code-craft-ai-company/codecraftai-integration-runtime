@@ -181,14 +181,17 @@ class SummaryForwardingIntegrationTestBase(unittest.TestCase):
                     try:
                         self.concentrator_server._forward_thread.join(timeout=2.0)
                     except Exception:
+                        # Best-effort teardown; the forwarding thread is a daemon, so a failed join must not block the remaining cleanup.
                         pass
             except Exception:
+                # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
                 pass
         
         if self.external_service is not None:
             try:
                 self.external_service.stop()
             except Exception:
+                # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
                 pass
         
         if os.path.exists(self.temp_dir):

@@ -402,6 +402,7 @@ class RestResultStreamer(ResultStreamer):
             try:
                 self._session.close()
             except Exception:
+                # Best-effort close; the session is discarded either way and a close failure must not block the state reset.
                 pass
             self._session = None
         
@@ -528,6 +529,7 @@ class WebSocketResultStreamer(ResultStreamer):
             try:
                 self._websocket.close()
             except Exception:
+                # Best-effort close; the WebSocket is discarded either way and a close failure must not block the state reset.
                 pass
             self._websocket = None
         

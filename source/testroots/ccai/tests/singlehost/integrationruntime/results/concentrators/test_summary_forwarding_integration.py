@@ -208,8 +208,10 @@ def _cleanup_env(env: dict) -> None:
                 try:
                     concentrator_server._forward_thread.join(timeout=2.0)
                 except Exception:
+                    # Best-effort teardown; the forwarding thread is a daemon, so a failed join must not block the remaining cleanup.
                     pass
         except Exception:
+            # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
             pass
 
     external_service = env["external_service"]
@@ -217,6 +219,7 @@ def _cleanup_env(env: dict) -> None:
         try:
             external_service.stop()
         except Exception:
+            # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
             pass
 
     temp_dir = env["temp_dir"]

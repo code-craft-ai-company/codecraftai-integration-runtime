@@ -13,7 +13,7 @@ import threading
 import time
 import json
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from datetime import datetime
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -25,11 +25,10 @@ from ccai.testbase.results.model.streaminginfo import (
     StreamingCallback
 )
 from ccai.integrationruntime.results.streaming.resultstreamer import (
-    ResultStreamer,
     RestResultStreamer,
     WebSocketResultStreamer,
     create_result_streamer,
-    StreamingJsonEncoder
+    StreamingJsonEncoder,
 )
 
 
@@ -177,12 +176,14 @@ def _cleanup_env(env: Dict[str, Any]) -> None:
         try:
             streamer.stop()
         except Exception:
+            # Best-effort teardown; a streamer that is already stopped must not block the remaining cleanup.
             pass
 
     if mock_service is not None:
         try:
             mock_service.stop()
         except Exception:
+            # Best-effort teardown; a mock service that is already stopped must not block the remaining cleanup.
             pass
     return
 

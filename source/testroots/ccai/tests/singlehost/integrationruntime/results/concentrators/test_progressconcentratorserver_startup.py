@@ -12,7 +12,7 @@ import shutil
 import threading
 import time
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
 from datetime import datetime
 
@@ -136,8 +136,10 @@ def _cleanup_env(env: Dict[str, Any]) -> None:
                 try:
                     server._forward_thread.join(timeout=2.0)
                 except Exception:
+                    # Best-effort teardown; the forwarding thread is a daemon, so a failed join must not block the remaining cleanup.
                     pass
         except Exception:
+            # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
             pass
 
     if os.path.exists(temp_dir):

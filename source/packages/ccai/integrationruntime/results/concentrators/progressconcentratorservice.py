@@ -12,7 +12,7 @@ __author__ = "Myron Walker"
 __copyright__ = "Copyright 2025, Code Craft AI LLC"
 __credits__ = []
 
-from typing import Any, Optional, Tuple, Union
+from typing import Any, Optional, Tuple
 
 import json
 import requests

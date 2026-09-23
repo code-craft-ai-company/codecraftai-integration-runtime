@@ -24,7 +24,6 @@ from ccai.testbase.results.model.buildinfo import BuildInfo
 from ccai.testbase.results.model.jobinfo import JobInfo
 from ccai.testbase.results.model.pipelineinfo import PipelineInfo
 from ccai.testbase.results.model.renderinfo import RenderInfo
-from ccai.testbase.results.model.forwardinginfo import ForwardingInfo
 from ccai.testbase.results.model.streaminginfo import StreamingInfo, StreamingCallback
 
 from ccai.testbase.results.model.resultnode import ResultNode

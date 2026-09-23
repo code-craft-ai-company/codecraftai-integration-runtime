@@ -30,7 +30,7 @@ from ccai.testbase.results.model.buildinfo import BuildInfo
 from ccai.testbase.results.model.pipelineinfo import PipelineInfo
 from ccai.testbase.results.model.jobinfo import JobInfo
 
-from ccai.thisapp.runtimevariables import RuntimeVariables, DefaultValue
+from ccai.thisapp.runtimevariables import RuntimeVariables
 
 
 UNKNOWN = "(unknown)"

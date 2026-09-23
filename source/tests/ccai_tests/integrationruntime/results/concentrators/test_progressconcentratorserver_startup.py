@@ -107,8 +107,10 @@ class ProgressConcentratorServerStartupTests(unittest.TestCase):
                     try:
                         server._forward_thread.join(timeout=2.0)
                     except Exception:
+                        # Best-effort teardown; the forwarding thread is a daemon, so a failed join must not block the remaining cleanup.
                         pass
             except Exception:
+                # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
                 pass
         
         if os.path.exists(self.temp_dir):

@@ -15,15 +15,12 @@ import io
 import http.client
 
 from datetime import datetime
-from http.server import BaseHTTPRequestHandler
 
 from ccai.testbase.results.model.buildinfo import BuildInfo
 from ccai.testbase.results.model.pipelineinfo import PipelineInfo
 from ccai.testbase.results.model.jobinfo import JobInfo
 from ccai.testbase.results.model.renderinfo import RenderInfo
 from ccai.testbase.results.model.progressinfo import ProgressInfo
-from ccai.testbase.results.model.progresscode import ProgressCode
-from ccai.testbase.results.model.progresstype import ProgressType
 
 from ccai.testbase.results.recorders.jsonresultrecorder import JsonResultRecorder
 from ccai.integrationruntime.results.concentrators.progressconcentratorservice import (
@@ -146,6 +143,7 @@ class ProgressCallbackHandlerTests(unittest.TestCase):
         try:
             self.server.server_close()
         except Exception:
+            # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
             pass
         
         if os.path.exists(self.temp_dir):
@@ -156,17 +154,7 @@ class ProgressCallbackHandlerTests(unittest.TestCase):
         if headers is None:
             headers = {}
         
-        # Build HTTP request string
-        request_line = "POST /progress HTTP/1.1\r\n"
-        header_lines = ""
-        for key, value in headers.items():
-            header_lines += f"{key}: {value}\r\n"
-        header_lines += "\r\n"
-        
-        full_request = (request_line + header_lines).encode('utf-8') + content
-        
         # Create mock socket-like objects
-        rfile = io.BytesIO(full_request)
         wfile = MockWfile()
         
         # Create a mock client address
@@ -405,6 +393,7 @@ class ProgressCallbackHandlerIntegrationTests(unittest.TestCase):
             self.server.shutdown()
             self.server.server_close()
         except Exception:
+            # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
             pass
         
         if os.path.exists(self.temp_dir):

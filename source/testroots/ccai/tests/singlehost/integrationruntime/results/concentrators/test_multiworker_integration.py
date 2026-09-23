@@ -22,9 +22,6 @@ from ccai.testbase.results.model.buildinfo import BuildInfo
 from ccai.testbase.results.model.pipelineinfo import PipelineInfo
 from ccai.testbase.results.model.jobinfo import JobInfo
 from ccai.testbase.results.model.renderinfo import RenderInfo
-from ccai.testbase.results.model.progressinfo import ProgressInfo
-from ccai.testbase.results.model.progresscode import ProgressCode
-from ccai.testbase.results.model.progresstype import ProgressType
 
 from ccai.testbase.results.recorders.jsonresultrecorder import JsonResultRecorder
 from ccai.integrationruntime.results.concentrators.progressconcentratorservice import (
@@ -148,6 +145,7 @@ def _cleanup_env(env: MultiWorkerEnv) -> None:
             env.server.shutdown()
             env.server.server_close()
         except Exception:
+            # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
             pass
 
     if os.path.exists(env.temp_dir):

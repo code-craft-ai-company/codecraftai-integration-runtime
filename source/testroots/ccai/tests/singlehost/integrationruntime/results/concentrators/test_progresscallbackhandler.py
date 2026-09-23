@@ -169,6 +169,7 @@ def _teardown_handler_env(env: dict) -> None:
     try:
         server.server_close()
     except Exception:
+        # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
         pass
 
     if os.path.exists(temp_dir):
@@ -292,6 +293,7 @@ def _teardown_integration_env(env: dict) -> None:
         server.shutdown()
         server.server_close()
     except Exception:
+        # Best-effort teardown; a server that never started or is already closed must not block the remaining cleanup.
         pass
 
     if os.path.exists(temp_dir):
@@ -313,17 +315,7 @@ def _create_handler_with_request(env: dict, content: bytes, headers: dict = None
     if headers is None:
         headers = {}
 
-    # Build HTTP request string
-    request_line = "POST /progress HTTP/1.1\r\n"
-    header_lines = ""
-    for key, value in headers.items():
-        header_lines += f"{key}: {value}\r\n"
-    header_lines += "\r\n"
-
-    full_request = (request_line + header_lines).encode('utf-8') + content
-
     # Create mock socket-like objects
-    rfile = io.BytesIO(full_request)
     wfile = MockWfile()
 
     # Create a mock client address

@@ -14,7 +14,7 @@
 import unittest
 import uuid
 
-from unittest import mock
+import unittest.mock
 
 import ccai.integrationruntime.runtimerunmetadata as rrm
 from ccai.integrationruntime.runtimerunmetadata import (
@@ -50,13 +50,13 @@ class IsUnsetAndResolveTests(unittest.TestCase):
 class RuntimeRunMetadataPropertyTests(unittest.TestCase):
 
     def test_run_id_uses_runtime_value_when_set(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_RUN_ID = "run-abc-123"
             metadata = RuntimeRunMetadata()
             self.assertEqual(metadata.run_id, "run-abc-123")
 
     def test_run_id_generates_uuid_when_unset(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_RUN_ID = NOT_SET_SENTINEL
             metadata = RuntimeRunMetadata()
             generated = metadata.run_id
@@ -65,43 +65,43 @@ class RuntimeRunMetadataPropertyTests(unittest.TestCase):
             self.assertEqual(str(parsed), generated)
 
     def test_title_falls_back_when_job_name_unset(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_JOB_NAME = NOT_SET_SENTINEL
             metadata = RuntimeRunMetadata(title="Fallback Title")
             self.assertEqual(metadata.title, "Fallback Title")
 
     def test_title_uses_job_name_when_set(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_JOB_NAME = "CI Job 42"
             metadata = RuntimeRunMetadata(title="Fallback Title")
             self.assertEqual(metadata.title, "CI Job 42")
 
     def test_apod_is_none_when_unset(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_AUTOMATION_POD = NOT_SET_SENTINEL
             metadata = RuntimeRunMetadata()
             self.assertIsNone(metadata.apod)
 
     def test_apod_value_when_set(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_AUTOMATION_POD = "pod-7"
             metadata = RuntimeRunMetadata()
             self.assertEqual(metadata.apod, "pod-7")
 
     def test_testrun_timeout_is_none_when_unset(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_TESTRUN_TIMEOUT = NOT_SET_SENTINEL
             metadata = RuntimeRunMetadata()
             self.assertIsNone(metadata.testrun_timeout)
 
     def test_job_seed_uses_runtime_value_when_set(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_JOB_SEED = "seed-12345"
             metadata = RuntimeRunMetadata()
             self.assertEqual(metadata.job_seed, "seed-12345")
 
     def test_job_seed_generates_uuid_once_when_unset(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             mockrv.AM_JOB_SEED = NOT_SET_SENTINEL
             metadata = RuntimeRunMetadata()
             first = metadata.job_seed
@@ -151,7 +151,7 @@ class CIMetadataFieldMappingTests(unittest.TestCase):
         return
 
     def test_build_info_maps_every_build_variable(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             self._mock_rv(mockrv, self.BUILD_VALUES)
             info = RuntimeRunMetadata().build_info()
             self.assertEqual(info.branch, self.BUILD_VALUES["AM_BUILD_BRANCH"])
@@ -161,7 +161,7 @@ class CIMetadataFieldMappingTests(unittest.TestCase):
             self.assertEqual(info.url, self.BUILD_VALUES["AM_BUILD_URL"])
 
     def test_pipeline_info_maps_every_pipeline_variable(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             self._mock_rv(mockrv, self.PIPELINE_VALUES)
             info = RuntimeRunMetadata().pipeline_info()
             self.assertEqual(info.id, self.PIPELINE_VALUES["AM_PIPELINE_ID"])
@@ -169,7 +169,7 @@ class CIMetadataFieldMappingTests(unittest.TestCase):
             self.assertEqual(info.instance, self.PIPELINE_VALUES["AM_PIPELINE_INSTANCE"])
 
     def test_job_info_maps_every_job_variable(self):
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             self._mock_rv(mockrv, self.JOB_VALUES)
             info = RuntimeRunMetadata().job_info()
             self.assertEqual(info.id, self.JOB_VALUES["AM_JOB_ID"])
@@ -187,7 +187,7 @@ class CIMetadataFieldMappingTests(unittest.TestCase):
         # BuildInfo, whose validation then raised.  RuntimeRunMetadata makes
         # that structurally impossible: every unset member becomes the
         # "(unknown)" placeholder, so the Info object always constructs.
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             self._mock_rv(mockrv, self.BUILD_VALUES)
             mockrv.AM_BUILD_NAME = NOT_SET_SENTINEL
             mockrv.AM_BUILD_URL = None
@@ -199,7 +199,7 @@ class CIMetadataFieldMappingTests(unittest.TestCase):
     def test_unset_pipeline_still_constructs_with_placeholders(self):
         # PipelineInfo is always created now; a run outside any pipeline gets
         # placeholders rather than a missing object.
-        with mock.patch.object(rrm, "RuntimeVariables") as mockrv:
+        with unittest.mock.patch.object(rrm, "RuntimeVariables") as mockrv:
             self._mock_rv(mockrv, {name: NOT_SET_SENTINEL for name in self.PIPELINE_VALUES})
             info = RuntimeRunMetadata().pipeline_info()
             self.assertEqual(info.id, UNKNOWN)
