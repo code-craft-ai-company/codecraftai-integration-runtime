@@ -30,6 +30,9 @@ dev = []
 
 [tool.poetry]
 packages = [{include="ccai", from="source/packages"}]
+# The README only marks the shared 'ccai' namespace directory in the source tree. It stays out of the
+# wheel because several codecraftai packages install into that directory and a file there collides.
+exclude = ["source/packages/ccai/README.md"]
 
 [tool.poetry.dependencies]
 codecraftai-foundations = {source = "codecraftai"}
