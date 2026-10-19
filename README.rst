@@ -1,6 +1,6 @@
-=========================
+===============================
 codecraftai-integration-runtime
-=========================
+===============================
 
 The ``codecraftai-integration-runtime`` package is the *integration test-job layer*
 of the Code Craft AI suite.  It builds on the near-standalone ``codecraftai-testbase``
