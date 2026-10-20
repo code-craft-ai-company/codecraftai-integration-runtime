@@ -1,6 +1,6 @@
 [project]
 name = "codecraftai-integration-runtime"
-version = "1.3.0"
+version = "1.3.1"
 description = "Code Craft AI - Integration Runtime"
 readme = "README.rst"
 license = "LicenseRef-CodeCraftAI-Source-Available"
