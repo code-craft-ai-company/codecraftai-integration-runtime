@@ -19,7 +19,7 @@ dependencies = [
     "codecraftai-xmodules>=1.0.0,<2.0.0",
     "codecraftai-extension>=1.0.0,<2.0.0",
     "codecraftai-this-app>=1.0.0,<2.0.0",
-    "codecraftai-testbase>=1.0.0,<2.0.0",
+    "codecraftai-testbase>=1.3.2,<2.0.0",
 ]
 
 [project.optional-dependencies]
